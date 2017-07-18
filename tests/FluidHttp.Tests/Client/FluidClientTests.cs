@@ -36,11 +36,22 @@ namespace FluidHttp.Tests.Client
             Content = new StringContent(contentResponse)
         };
 
+        (string methodString, HttpMethod methodModel)[] methodsArray = new(string, HttpMethod)[]
+        {
+                ("GET", HttpMethod.Get),
+                ("DELETE", HttpMethod.Delete),
+                ("HEAD", HttpMethod.Head),
+                ("OPTIONS", HttpMethod.Options),
+                ("POST", HttpMethod.Post),
+                ("PUT", HttpMethod.Put),
+                ("TRACE", HttpMethod.Trace)
+        };
+
         [Fact]
         public async Task FetchUrl_ReturnsResponse()
         {
             // Act
-            FluidResponse response = await client.Fetch(url);
+            FluidResponse response = await client.FetchAsync(url);
 
             // Assert
             Assert.IsType<FluidResponse>(response);
@@ -51,7 +62,7 @@ namespace FluidHttp.Tests.Client
         public async Task FetchUrl_GetsContentFromUrl()
         {
             // Act
-            await client.Fetch(url);
+            await client.FetchAsync(url);
             
             // Assert
             messageHandler
@@ -67,7 +78,7 @@ namespace FluidHttp.Tests.Client
         public async Task FetchUrl_PlacesContentFromResponseInResult()
         {
             // Act
-            FluidResponse response = await client.Fetch(url);
+            FluidResponse response = await client.FetchAsync(url);
 
             // Assert
             Assert.Equal(contentResponse, response.Content);
@@ -76,29 +87,17 @@ namespace FluidHttp.Tests.Client
         [Fact]
         public async Task FetchUrl_WithMethod_CallsUrlWithSpecifiedMethod()
         {
-            // Arrange
-            HttpMethod[] methods = new HttpMethod[]
-            {
-                HttpMethod.Get,
-                HttpMethod.Delete,
-                HttpMethod.Head,
-                HttpMethod.Options,
-                HttpMethod.Post,
-                HttpMethod.Put,
-                HttpMethod.Trace
-            };
-
             // Act + Assert
-            foreach (var method in methods)
+            foreach (var method in methodsArray)
             {
-                await client.Fetch(url, method);
+                await client.FetchAsync(url, method.methodModel);
 
                 messageHandler
                     .Protected()
                     .Verify(
                         "SendAsync",
                         Times.Once(),
-                        ItExpr.Is<HttpRequestMessage>(i => i.Method == method),
+                        ItExpr.Is<HttpRequestMessage>(i => i.Method == method.methodModel),
                         ItExpr.IsAny<CancellationToken>());
             }
         }
@@ -106,22 +105,10 @@ namespace FluidHttp.Tests.Client
         [Fact]
         public async Task FetchUrl_WithStringMethod_ParsesStringAndMakesRequest()
         {
-            // Arrange
-            (string methodString, HttpMethod methodModel)[] methods = new (string, HttpMethod)[]
-            {
-                ("GET", HttpMethod.Get),
-                ("DELETE", HttpMethod.Delete),
-                ("HEAD", HttpMethod.Head),
-                ("OPTIONS", HttpMethod.Options),
-                ("POST", HttpMethod.Post),
-                ("PUT", HttpMethod.Put),
-                ("TRACE", HttpMethod.Trace)
-            };
-
             // Act + Assert
-            foreach (var method in methods)
+            foreach (var method in methodsArray)
             {
-                await client.Fetch(url, method.methodString);
+                await client.FetchAsync(url, method.methodString);
 
                 messageHandler
                     .Protected()
@@ -137,7 +124,7 @@ namespace FluidHttp.Tests.Client
         public async Task FetchUrl_UnknownMethod_SendsAnyway()
         {
             // Act
-            await client.Fetch(url, "made-up-method");
+            await client.FetchAsync(url, "made-up-method");
 
             // Assert
             messageHandler
