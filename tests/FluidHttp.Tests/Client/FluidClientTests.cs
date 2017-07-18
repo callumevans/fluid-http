@@ -40,7 +40,7 @@ namespace FluidHttp.Tests.Client
         public async Task FetchUrl_ReturnsResponse()
         {
             // Act
-            FluidResponse response = await client.Fetch(url);
+            FluidResponse response = await client.FetchAsync(url);
 
             // Assert
             Assert.IsType<FluidResponse>(response);
@@ -51,7 +51,7 @@ namespace FluidHttp.Tests.Client
         public async Task FetchUrl_GetsContentFromUrl()
         {
             // Act
-            await client.Fetch(url);
+            await client.FetchAsync(url);
             
             // Assert
             messageHandler
@@ -67,7 +67,7 @@ namespace FluidHttp.Tests.Client
         public async Task FetchUrl_PlacesContentFromResponseInResult()
         {
             // Act
-            FluidResponse response = await client.Fetch(url);
+            FluidResponse response = await client.FetchAsync(url);
 
             // Assert
             Assert.Equal(contentResponse, response.Content);
@@ -91,7 +91,7 @@ namespace FluidHttp.Tests.Client
             // Act + Assert
             foreach (var method in methods)
             {
-                await client.Fetch(url, method);
+                await client.FetchAsync(url, method);
 
                 messageHandler
                     .Protected()
@@ -121,7 +121,7 @@ namespace FluidHttp.Tests.Client
             // Act + Assert
             foreach (var method in methods)
             {
-                await client.Fetch(url, method.methodString);
+                await client.FetchAsync(url, method.methodString);
 
                 messageHandler
                     .Protected()
@@ -137,7 +137,7 @@ namespace FluidHttp.Tests.Client
         public async Task FetchUrl_UnknownMethod_SendsAnyway()
         {
             // Act
-            await client.Fetch(url, "made-up-method");
+            await client.FetchAsync(url, "made-up-method");
 
             // Assert
             messageHandler

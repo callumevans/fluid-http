@@ -13,17 +13,17 @@ namespace FluidHttp.Client
             this.httpClient = httpClient;
         }
 
-        public async Task<FluidResponse> Fetch(string url, string method)
+        public async Task<FluidResponse> FetchAsync(string url, string method)
         {
-            return await Fetch(url, new HttpMethod(method));
+            return await FetchAsync(url, new HttpMethod(method));
         }
 
-        public async Task<FluidResponse> Fetch(string url)
+        public async Task<FluidResponse> FetchAsync(string url)
         {
-            return await Fetch(url, HttpMethod.Get);
+            return await FetchAsync(url, HttpMethod.Get);
         }
 
-        public async Task<FluidResponse> Fetch(string url, HttpMethod method)
+        public async Task<FluidResponse> FetchAsync(string url, HttpMethod method)
         {
             var request = new HttpRequestMessage(method, url);
 
