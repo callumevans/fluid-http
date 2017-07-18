@@ -1,0 +1,7 @@
+/.vs/
+
+src/FluidHttp/bin
+src/FluidHttp/obj
+
+tests/FluidHttp.Tests/bin
+tests/FluidHttp.Tests/obj
