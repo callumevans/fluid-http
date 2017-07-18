@@ -1,4 +1,5 @@
-﻿using FluidHttp.Response;
+﻿using FluidHttp.Request;
+using FluidHttp.Response;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -13,6 +14,19 @@ namespace FluidHttp.Client
             this.httpClient = httpClient;
         }
 
+        public async Task<FluidResponse> FetchAsync(FluidRequest request)
+        {
+            var httpRequest = new HttpRequestMessage(request.Method, request.Url);
+
+            HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
+
+            var response = new FluidResponse();
+
+            response.Content = await httpResponse.Content.ReadAsStringAsync();
+
+            return response;
+        }
+
         public async Task<FluidResponse> FetchAsync(string url)
         {
             return await FetchAsync(url, HttpMethod.Get);
@@ -25,15 +39,12 @@ namespace FluidHttp.Client
 
         public async Task<FluidResponse> FetchAsync(string url, HttpMethod method)
         {
-            var request = new HttpRequestMessage(method, url);
+            FluidRequest request = new FluidRequest();
 
-            HttpResponseMessage httpResponse = await httpClient.SendAsync(request);
+            request.Url = url;
+            request.Method = method;
 
-            var response = new FluidResponse();
-
-            response.Content = await httpResponse.Content.ReadAsStringAsync();
-
-            return response;
+            return await FetchAsync(request);
         }
     }
 }

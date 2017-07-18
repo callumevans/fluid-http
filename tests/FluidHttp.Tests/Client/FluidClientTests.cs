@@ -1,8 +1,10 @@
 ﻿using FluidHttp.Client;
+using FluidHttp.Request;
 using FluidHttp.Response;
 using FluidHttp.Tests.Abstractions;
 using Moq;
 using Moq.Protected;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,7 +72,7 @@ namespace FluidHttp.Tests.Client
                 .Verify(
                     "SendAsync", 
                     Times.Once(), 
-                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get), 
+                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(url)), 
                     ItExpr.IsAny<CancellationToken>());
         }
 
@@ -97,7 +99,7 @@ namespace FluidHttp.Tests.Client
                     .Verify(
                         "SendAsync",
                         Times.Once(),
-                        ItExpr.Is<HttpRequestMessage>(i => i.Method == method.methodModel),
+                        ItExpr.Is<HttpRequestMessage>(i => i.Method == method.methodModel && i.RequestUri == new Uri(url)),
                         ItExpr.IsAny<CancellationToken>());
             }
         }
@@ -115,7 +117,7 @@ namespace FluidHttp.Tests.Client
                     .Verify(
                         "SendAsync",
                         Times.Once(),
-                        ItExpr.Is<HttpRequestMessage>(i => i.Method == method.methodModel),
+                        ItExpr.Is<HttpRequestMessage>(i => i.Method == method.methodModel && i.RequestUri == new Uri(url)),
                         ItExpr.IsAny<CancellationToken>());
             }
         }
@@ -133,6 +135,27 @@ namespace FluidHttp.Tests.Client
                     "SendAsync",
                     Times.Once(),
                     ItExpr.Is<HttpRequestMessage>(i => i.Method == new HttpMethod("made-up-method")),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task FetchAsync_ParsesAndExecutesRequest()
+        {
+            // Arrange
+            FluidRequest request = new FluidRequest();
+
+            request.Url = url;
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(url)),
                     ItExpr.IsAny<CancellationToken>());
         }
     }
