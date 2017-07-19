@@ -1,5 +1,6 @@
 ﻿using FluidHttp.Request;
 using FluidHttp.Response;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -7,6 +8,8 @@ namespace FluidHttp.Client
 {
     public class FluidClient
     {
+        public string BaseUrl { get; set; }
+
         private HttpClient httpClient;
 
         public FluidClient(HttpClient httpClient)
@@ -16,7 +19,12 @@ namespace FluidHttp.Client
 
         public async Task<FluidResponse> FetchAsync(FluidRequest request)
         {
-            var httpRequest = new HttpRequestMessage(request.Method, request.Url);
+            string requestUrl = request.Url;
+
+            if (string.IsNullOrWhiteSpace(this.BaseUrl) == false)
+                requestUrl = this.BaseUrl + request.Url;
+
+            var httpRequest = new HttpRequestMessage(request.Method, requestUrl);
 
             HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
 

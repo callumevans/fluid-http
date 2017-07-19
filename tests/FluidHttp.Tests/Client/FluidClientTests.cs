@@ -139,7 +139,7 @@ namespace FluidHttp.Tests.Client
         }
 
         [Fact]
-        public async Task FetchAsync_ParsesAndExecutesRequest()
+        public async Task FetchUrl_ParsesAndExecutesRequest()
         {
             // Arrange
             FluidRequest request = new FluidRequest();
@@ -156,6 +156,28 @@ namespace FluidHttp.Tests.Client
                     "SendAsync",
                     Times.Once(),
                     ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(url)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task FetchUrl_ClientHasBaseUrl_PrependsBaseUrlToRequest()
+        {
+            // Arrange
+            string baseUrl = "http://www.baseurl.com/";
+            string resource = "test/resource/1";
+
+            client.BaseUrl = baseUrl;
+
+            // Act
+            await client.FetchAsync(resource);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(baseUrl + resource)),
                     ItExpr.IsAny<CancellationToken>());
         }
     }
