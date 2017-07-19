@@ -1,4 +1,5 @@
 ﻿using FluidHttp.Client;
+using FluidHttp.Exceptions;
 using FluidHttp.Request;
 using FluidHttp.Response;
 using FluidHttp.Tests.Abstractions;
@@ -50,7 +51,7 @@ namespace FluidHttp.Tests.Client
         };
 
         [Fact]
-        public async Task FetchUrl_ReturnsResponse()
+        public async Task Fetch_ReturnsResponse()
         {
             // Act
             FluidResponse response = await client.FetchAsync(url);
@@ -61,7 +62,7 @@ namespace FluidHttp.Tests.Client
         }
         
         [Fact]
-        public async Task FetchUrl_GetsContentFromUrl()
+        public async Task Fetch_GetsContentFromUrl()
         {
             // Act
             await client.FetchAsync(url);
@@ -77,7 +78,7 @@ namespace FluidHttp.Tests.Client
         }
 
         [Fact]
-        public async Task FetchUrl_PlacesContentFromResponseInResult()
+        public async Task Fetch_PlacesContentFromResponseInResult()
         {
             // Act
             FluidResponse response = await client.FetchAsync(url);
@@ -87,7 +88,7 @@ namespace FluidHttp.Tests.Client
         }
 
         [Fact]
-        public async Task FetchUrl_WithMethod_CallsUrlWithSpecifiedMethod()
+        public async Task Fetch_WithMethod_CallsUrlWithSpecifiedMethod()
         {
             // Act + Assert
             foreach (var method in methodsArray)
@@ -105,7 +106,7 @@ namespace FluidHttp.Tests.Client
         }
 
         [Fact]
-        public async Task FetchUrl_WithStringMethod_ParsesStringAndMakesRequest()
+        public async Task Fetch_WithStringMethod_ParsesStringAndMakesRequest()
         {
             // Act + Assert
             foreach (var method in methodsArray)
@@ -123,7 +124,7 @@ namespace FluidHttp.Tests.Client
         }
 
         [Fact]
-        public async Task FetchUrl_UnknownMethod_SendsAnyway()
+        public async Task Fetch_UnknownMethod_SendsAnyway()
         {
             // Act
             await client.FetchAsync(url, "made-up-method");
@@ -139,7 +140,7 @@ namespace FluidHttp.Tests.Client
         }
 
         [Fact]
-        public async Task FetchUrl_ParsesAndExecutesRequest()
+        public async Task Fetch_ParsesAndExecutesRequest()
         {
             // Arrange
             FluidRequest request = new FluidRequest();
@@ -160,7 +161,7 @@ namespace FluidHttp.Tests.Client
         }
 
         [Fact]
-        public async Task FetchUrl_ClientHasBaseUrl_PrependsBaseUrlToRequest()
+        public async Task Fetch_ClientHasBaseUrl_PrependsBaseUrlToRequest()
         {
             // Arrange
             string baseUrl = "http://www.baseurl.com/";
@@ -179,6 +180,57 @@ namespace FluidHttp.Tests.Client
                     Times.Once(),
                     ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(baseUrl + resource)),
                     ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Theory]
+        [InlineData("not-a-uri")]
+        [InlineData("www.test.com")]
+        [InlineData("with spaces")]
+        [InlineData("http:// www . test .net")]
+        public void SetInvalidBaseUrl_ThrowException(string badUri)
+        {
+            // Act + Assert
+            Assert.Throws<BadBaseUriException>(() => client.BaseUrl = badUri);
+        }
+
+        [Theory]
+        [InlineData("not-a-uri")]
+        [InlineData("www.test.com")]
+        [InlineData("with spaces")]
+        [InlineData("http:// www . test .net")]
+        public async Task Fetch_InvalidResourceUrl_NoBaseUrlSet_ThrowException(string badResource)
+        {
+            // Act + Assert
+            await Assert.ThrowsAsync<BadAbsoluteUriException>(
+                async () => await client.FetchAsync(badResource));
+        }
+
+        [Theory]
+        [InlineData("with spaces")]
+        [InlineData("http://www.test.com/")]
+        public async Task Fetch_InvalidRelativeResourceUrl_BaseUrlSet_ThrowException(string badResource)
+        {
+            // Arrange
+            client.BaseUrl = "http://test.com/";
+
+            // Act + Assert
+            await Assert.ThrowsAsync<BadRelativeUriException>(
+                async () => await client.FetchAsync(badResource));
+        }
+
+        [Theory]
+        [InlineData("?breakIt=false")]
+        [InlineData("not-a-uri")]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("/")]
+        public async Task Fetch_ValidResourceUrl_ContinuesAsNormal(string goodResource)
+        {
+            // Arrange
+            client.BaseUrl = "http://test.com/";
+
+            // Act
+            await client.FetchAsync(goodResource);
         }
     }
 }

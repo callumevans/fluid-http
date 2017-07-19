@@ -1,4 +1,5 @@
-﻿using FluidHttp.Request;
+﻿using FluidHttp.Exceptions;
+using FluidHttp.Request;
 using FluidHttp.Response;
 using System;
 using System.Net.Http;
@@ -8,9 +9,25 @@ namespace FluidHttp.Client
 {
     public class FluidClient
     {
-        public string BaseUrl { get; set; }
+        public string BaseUrl
+        {
+            get
+            {
+                return baseUrl;
+            }
+            set
+            {
+                if (Uri.IsWellFormedUriString(value, UriKind.Absolute) == false)
+                {
+                    throw new BadBaseUriException();
+                }
 
-        private HttpClient httpClient;
+                this.baseUrl = value;
+            }
+        }
+
+        private readonly HttpClient httpClient;
+        private string baseUrl = null;
 
         public FluidClient(HttpClient httpClient)
         {
@@ -21,8 +38,27 @@ namespace FluidHttp.Client
         {
             string requestUrl = request.Url;
 
-            if (string.IsNullOrWhiteSpace(this.BaseUrl) == false)
-                requestUrl = this.BaseUrl + request.Url;
+            if (string.IsNullOrWhiteSpace(this.baseUrl) == false)
+            {
+                // Make sure resource url is a valid relative uri
+                // so we can safely append it to the client's BaseUrl
+
+                request.Url = request.Url.Trim();
+
+                if (Uri.IsWellFormedUriString(request.Url, UriKind.Relative) == false)
+                {
+                    throw new BadRelativeUriException();
+                }
+
+                requestUrl = this.baseUrl + request.Url;
+            }
+            else if (Uri.IsWellFormedUriString(request.Url, UriKind.Absolute) == false)
+            {
+                // If a BaseUrl has not been set then treat the resource url 
+                // as the base and make sure it's a valid absolute uri
+
+                throw new BadAbsoluteUriException();
+            }
 
             var httpRequest = new HttpRequestMessage(request.Method, requestUrl);
 
