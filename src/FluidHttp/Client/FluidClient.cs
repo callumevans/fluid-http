@@ -2,6 +2,7 @@
 using FluidHttp.Request;
 using FluidHttp.Response;
 using System;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -50,7 +51,12 @@ namespace FluidHttp.Client
                     throw new BadRelativeUriException();
                 }
 
-                requestUrl = this.baseUrl + request.Url;
+                // Safely combine the base url with the resource url
+
+                this.baseUrl = this.baseUrl.TrimEnd('/', '\\');
+                request.Url = request.Url.TrimStart('/', '\\');
+
+                requestUrl = $"{this.baseUrl}/{request.Url}";
             }
             else if (Uri.IsWellFormedUriString(request.Url, UriKind.Absolute) == false)
             {

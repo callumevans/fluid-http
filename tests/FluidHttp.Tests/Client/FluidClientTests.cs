@@ -232,5 +232,30 @@ namespace FluidHttp.Tests.Client
             // Act
             await client.FetchAsync(goodResource);
         }
+
+        [Theory]
+        [InlineData("http://localhost.com/", "/my-test-resource", "http://localhost.com/my-test-resource")]
+        [InlineData("http://localhost.com", "/my-test-resource", "http://localhost.com/my-test-resource")]
+        [InlineData("http://localhost.com/", "my-test-resource", "http://localhost.com/my-test-resource")]
+        [InlineData("http://localhost.com", "my-test-resource", "http://localhost.com/my-test-resource")]
+        [InlineData("http://localhost.com", "?query=string", "http://localhost.com?query=string")]
+        public async Task Fetch_CorrectlyConcatenateBaseUrlAndResourceUrl(
+            string baseUrl, string resourceUrl, string expected)
+        {
+            // Arrange
+            client.BaseUrl = baseUrl;
+
+            // Act
+            await client.FetchAsync(resourceUrl);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(expected)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
     }
 }
