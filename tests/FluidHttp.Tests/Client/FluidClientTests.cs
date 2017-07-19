@@ -224,6 +224,8 @@ namespace FluidHttp.Tests.Client
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("/")]
+        [InlineData("/ ")]
+        [InlineData(" / ")]
         public async Task Fetch_ValidResourceUrl_ContinuesAsNormal(string goodResource)
         {
             // Arrange
@@ -234,6 +236,12 @@ namespace FluidHttp.Tests.Client
         }
 
         [Theory]
+        [InlineData("http://localhost.com/ ", "/my-test-resource", "http://localhost.com/my-test-resource")]
+        [InlineData(" http://localhost.com/", "/my-test-resource", "http://localhost.com/my-test-resource")]
+        [InlineData(" http://localhost.com/ ", "/my-test-resource", "http://localhost.com/my-test-resource")]
+        [InlineData("http://localhost.com", " /my-test-resource", "http://localhost.com/my-test-resource")]
+        [InlineData("http://localhost.com", "/my-test-resource ", "http://localhost.com/my-test-resource")]
+        [InlineData("http://localhost.com", " /my-test-resource ", "http://localhost.com/my-test-resource")]
         [InlineData("http://localhost.com/", "/my-test-resource", "http://localhost.com/my-test-resource")]
         [InlineData("http://localhost.com", "/my-test-resource", "http://localhost.com/my-test-resource")]
         [InlineData("http://localhost.com/", "my-test-resource", "http://localhost.com/my-test-resource")]

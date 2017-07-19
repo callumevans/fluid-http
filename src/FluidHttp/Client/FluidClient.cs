@@ -20,7 +20,7 @@ namespace FluidHttp.Client
                 if (Uri.IsWellFormedUriString(value, UriKind.Absolute) == false)
                     throw new BadBaseUriException();
 
-                this.baseUrl = value;
+                this.baseUrl = value.Trim();
                 baseUrlSet = !(string.IsNullOrWhiteSpace(value));
             }
         }
@@ -43,17 +43,17 @@ namespace FluidHttp.Client
                 // Make sure resource url is a valid relative uri
                 // so we can safely append it to the client's BaseUrl
 
-                request.Url = request.Url.Trim();
+                string resourceUrl = request.Url.Trim();
 
-                if (Uri.IsWellFormedUriString(request.Url, UriKind.Relative) == false)
+                if (Uri.IsWellFormedUriString(resourceUrl, UriKind.Relative) == false)
                     throw new BadRelativeUriException();
 
                 // Safely combine the base url with the resource url
 
-                this.baseUrl = this.baseUrl.TrimEnd('/', '\\');
-                request.Url = request.Url.TrimStart('/', '\\');
+                string rootUrl = this.baseUrl.TrimEnd('/', '\\', ' ');
+                resourceUrl = request.Url.TrimStart('/', '\\', ' ');
 
-                requestUrl = $"{this.baseUrl}/{request.Url}";
+                requestUrl = $"{rootUrl}/{resourceUrl}";
             }
             else
             {
