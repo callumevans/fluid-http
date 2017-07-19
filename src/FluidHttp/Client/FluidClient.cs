@@ -19,9 +19,7 @@ namespace FluidHttp.Client
             set
             {
                 if (Uri.IsWellFormedUriString(value, UriKind.Absolute) == false)
-                {
                     throw new BadBaseUriException();
-                }
 
                 this.baseUrl = value;
             }
@@ -47,9 +45,7 @@ namespace FluidHttp.Client
                 request.Url = request.Url.Trim();
 
                 if (Uri.IsWellFormedUriString(request.Url, UriKind.Relative) == false)
-                {
                     throw new BadRelativeUriException();
-                }
 
                 // Safely combine the base url with the resource url
 
