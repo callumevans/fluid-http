@@ -2,7 +2,6 @@
 using FluidHttp.Request;
 using FluidHttp.Response;
 using System;
-using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -22,11 +21,13 @@ namespace FluidHttp.Client
                     throw new BadBaseUriException();
 
                 this.baseUrl = value;
+                baseUrlSet = !(string.IsNullOrWhiteSpace(value));
             }
         }
 
         private readonly HttpClient httpClient;
         private string baseUrl = null;
+        private bool baseUrlSet = false;
 
         public FluidClient(HttpClient httpClient)
         {
@@ -37,7 +38,7 @@ namespace FluidHttp.Client
         {
             string requestUrl = request.Url;
 
-            if (string.IsNullOrWhiteSpace(this.baseUrl) == false)
+            if (baseUrlSet == true)
             {
                 // Make sure resource url is a valid relative uri
                 // so we can safely append it to the client's BaseUrl
@@ -54,12 +55,13 @@ namespace FluidHttp.Client
 
                 requestUrl = $"{this.baseUrl}/{request.Url}";
             }
-            else if (Uri.IsWellFormedUriString(request.Url, UriKind.Absolute) == false)
+            else
             {
                 // If a BaseUrl has not been set then treat the resource url 
                 // as the base and make sure it's a valid absolute uri
 
-                throw new BadAbsoluteUriException();
+                if (Uri.IsWellFormedUriString(request.Url, UriKind.Absolute) == false)
+                    throw new BadAbsoluteUriException();
             }
 
             var httpRequest = new HttpRequestMessage(request.Method, requestUrl);
