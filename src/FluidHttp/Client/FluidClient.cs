@@ -2,6 +2,7 @@
 using FluidHttp.Request;
 using FluidHttp.Response;
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -17,11 +18,14 @@ namespace FluidHttp.Client
             }
             set
             {
+                baseUrlSet = !(string.IsNullOrWhiteSpace(value));
+
+                if (baseUrlSet == false) return;
+
                 if (Uri.IsWellFormedUriString(value, UriKind.Absolute) == false)
                     throw new BadBaseUriException();
 
                 this.baseUrl = value.Trim();
-                baseUrlSet = !(string.IsNullOrWhiteSpace(value));
             }
         }
 
@@ -63,6 +67,24 @@ namespace FluidHttp.Client
                 if (Uri.IsWellFormedUriString(requestUrl, UriKind.Absolute) == false)
                     throw new BadAbsoluteUriException();
             }
+
+            // Build up query string for request url
+            if (request.Parameters.Count > 0)
+            {
+                string queryString = "?";
+
+                foreach (var parameter in request.Parameters)
+                {
+                    queryString += parameter.ToString();
+
+                    if (parameter != request.Parameters.Last())
+                        queryString += "&";
+                }
+
+                requestUrl += queryString;
+            }
+
+            // Execute request
 
             var httpRequest = new HttpRequestMessage(request.Method, requestUrl);
 

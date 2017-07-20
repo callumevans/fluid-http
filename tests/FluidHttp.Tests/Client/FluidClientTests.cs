@@ -6,6 +6,7 @@ using FluidHttp.Tests.Abstractions;
 using Moq;
 using Moq.Protected;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -236,6 +237,50 @@ namespace FluidHttp.Tests.Client
         }
 
         [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public async Task Fetch_EmptyBaseUrl_IgnoresBaseUrl(string baseUrl)
+        {
+            // Arrange
+            client.BaseUrl = baseUrl;
+
+            // Act
+            await client.FetchAsync(url);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(url)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public async Task Fetch_EmptyBaseUrl_IgnoresBaseUrl_InvalidResource_ThrowsException(string baseUrl)
+        {
+            // Arrange
+            client.BaseUrl = baseUrl;
+
+            // Act
+            await client.FetchAsync(url);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(url)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Theory]
         [InlineData("http://localhost.com/ ", "/my-test-resource", "http://localhost.com/my-test-resource")]
         [InlineData(" http://localhost.com/", "/my-test-resource", "http://localhost.com/my-test-resource")]
         [InlineData(" http://localhost.com/ ", "/my-test-resource", "http://localhost.com/my-test-resource")]
@@ -263,6 +308,154 @@ namespace FluidHttp.Tests.Client
                     "SendAsync",
                     Times.Once(),
                     ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(expected)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task Fetch_RequestHasQueryParameter_BuildQueryString()
+        {
+            // Arrange
+            string expectedUrl = url + "?NumberTest=123";
+
+            FluidRequest request = new FluidRequest();
+
+            request.AddQueryParameter("NumberTest", 123);
+
+            request.Url = url;
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(expectedUrl)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task Fetch_RequestHasArrayQueryParameter_BuildQueryString()
+        {
+            // Arrange
+            string expectedUrl = url + "?ArrayTest[]=val1&ArrayTest[]=val2&ArrayTest[]=val3";
+
+            IEnumerable<string> arrayValues = new List<string>
+            {
+                "val1",
+                "val2",
+                "val3"
+            };
+
+            FluidRequest request = new FluidRequest();
+
+            request.AddQueryParameter("ArrayTest", arrayValues);
+
+            request.Url = url;
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(expectedUrl)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task Fetch_RequestHasMultipleQueryParameters_BuildQueryString()
+        {
+            // Arrange
+            string baseUrl = "http://localhost.com/";
+            string expectedUrl = baseUrl +
+                "?TestParameter=True&" +
+                "OtherTest=hello+world!&" +
+                "ArrayTest[]=val1&ArrayTest[]=val2&ArrayTest[]=val3&" +
+                "NumberTest=123";
+
+            IEnumerable<string> arrayValues = new List<string>
+            {
+                "val1",
+                "val2",
+                "val3"
+            };
+
+            FluidRequest request = new FluidRequest();
+
+            request.AddQueryParameter("TestParameter", true);
+            request.AddQueryParameter("OtherTest", "hello world!");
+            request.AddQueryParameter("ArrayTest", arrayValues);
+            request.AddQueryParameter("NumberTest", 123);
+
+            request.Url = url;
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(expectedUrl)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task Fetch_RequestUrlHasQueryParameters_ResourceUrlHasQueryString()
+        {
+            // Arrange
+            string requestUrl = "http://localhost.com/?MyParameter=hello+world";
+            string expectedUrl = "http://localhost.com/?MyParameter=hello+world&MyOtherParameter=hello+mars";
+
+            FluidRequest request = new FluidRequest();
+
+            request.Url = requestUrl;
+
+            request.AddQueryParameter("MyOtherParameter", "hello mars");
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(expectedUrl)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Theory]
+        [InlineData("?")]
+        [InlineData("?TestVal=")]
+        [InlineData("?TestVal")]
+        [InlineData("?TestVal&OtherTest=true")]
+        [InlineData("?TestVal&OtherVal")]
+        [InlineData("?=test&OtherVal")]
+        public async Task Fetch_AwkwardQueryString_StillSendRequest(string resource)
+        {
+            // Arrange
+            client.BaseUrl = url;
+
+            // Act
+            await client.FetchAsync(resource);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(url + resource)),
                     ItExpr.IsAny<CancellationToken>());
         }
     }
