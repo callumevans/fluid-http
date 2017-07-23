@@ -96,7 +96,9 @@ namespace FluidHttp.Client
 
             var response = new FluidResponse();
 
-            response.Content = await httpResponse.Content.ReadAsStringAsync();
+            response.Content = await httpResponse.Content
+                .ReadAsStringAsync()
+                .ConfigureAwait(false);
 
             return response;
         }
