@@ -31,8 +31,9 @@ namespace FluidHttp.Client
         }
 
         private readonly HttpClient httpClient;
+
         private string baseUrl;
-        private bool baseUrlSet = false;
+        private bool baseUrlSet;
 
         public FluidClient(HttpClient httpClient)
         {
