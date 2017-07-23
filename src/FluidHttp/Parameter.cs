@@ -18,29 +18,29 @@ namespace FluidHttp
 
         public override string ToString()
         {
-            var parameterStringBuilder = new StringBuilder();
+            var parameterString = new StringBuilder();
 
             if (Value == null)
             {
-                parameterStringBuilder.Append($"{Name}");
+                parameterString.Append($"{Name}");
             }                
             else if (Value is IEnumerable<object> enumerable)
             {
                 foreach (var value in enumerable)
                 {
-                    parameterStringBuilder.Append($"{Name}[]={value.ToString()}");
+                    parameterString.Append($"{Name}[]={value.ToString()}");
 
                     if (value != enumerable.Last())
-                        parameterStringBuilder.Append("&");
+                        parameterString.Append("&");
                 }
             }
             else
             {
-                parameterStringBuilder.Append(
+                parameterString.Append(
                     $"{Name}={Value.ToString()}");
             }
 
-            return parameterStringBuilder.ToString().Replace(' ', '+');
+            return parameterString.ToString().Replace(' ', '+');
         }
     }
 }

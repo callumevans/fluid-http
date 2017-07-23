@@ -73,19 +73,19 @@ namespace FluidHttp.Client
             // Build up query string for request url
             if (request.Parameters.Count > 0)
             {
-                var builder = new StringBuilder();
+                var queryString = new StringBuilder();
 
-                builder.Append("?");
+                queryString.Append("?");
 
                 foreach (var parameter in request.Parameters)
                 {
-                    builder.Append(parameter.ToString());
+                    queryString.Append(parameter.ToString());
 
                     if (parameter != request.Parameters.Last())
-                        builder.Append("&");
+                        queryString.Append("&");
                 }
 
-                requestUrl += builder.ToString();
+                requestUrl += queryString;
             }
 
             // Execute request
