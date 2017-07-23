@@ -489,7 +489,7 @@ namespace FluidHttp.Tests.Client
         [Theory]
         [InlineData("http://local host.com")]
         [InlineData("http://local%20host.com")]
-        public async Task Fetch_IllegalCharacyersInBaseUrl_InvalidAbsoluteUriException(string baseUrl)
+        public async Task Fetch_IllegalCharactersInBaseUrl_InvalidAbsoluteUriException(string baseUrl)
         {
             // Act + Assert
             await Assert.ThrowsAsync<BadAbsoluteUriException>(
@@ -497,15 +497,27 @@ namespace FluidHttp.Tests.Client
         }
 
         [Theory]
-        [InlineData("my resource", "http://localhost.com/my%20resource")]
+        [InlineData(" ", "%20")]
+        [InlineData("\"", "%22")]
+        [InlineData("%", "%25")]
+        [InlineData("<", "%3C")]
+        [InlineData(">", "%3E")]
+        [InlineData("\\", "%5C")]
+        [InlineData("^", "%5E")]
+        [InlineData("`", "%60")]
+        [InlineData("{", "%7B")]
+        [InlineData("|", "%7C")]
+        [InlineData("}", "%7D")]
         public async Task Fetch_SubstituteIllegalCharactersInResourceUrl(
-            string resourceUrl, string expected)
+            string character, string encoded)
         {
             // Arrange
             client.BaseUrl = url;
 
+            string resource =  $"test{character}resource";
+
             // Act
-           await client.FetchAsync(resourceUrl);
+           await client.FetchAsync(resource);
 
             // Assert
             messageHandler
@@ -513,7 +525,7 @@ namespace FluidHttp.Tests.Client
                 .Verify(
                     "SendAsync",
                     Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri.OriginalString == new Uri(expected).OriginalString),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri.OriginalString == $"{url}/test{encoded}resource"),
                     ItExpr.IsAny<CancellationToken>());
         }
     }

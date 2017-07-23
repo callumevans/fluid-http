@@ -47,7 +47,8 @@ namespace FluidHttp.Client
 
         public async Task<FluidResponse> FetchAsync(FluidRequest request)
         {
-            string requestUrl = Uri.EscapeUriString(request.Url.Trim());
+            string requestUrl = Uri.EscapeUriString(
+                request.Url.Trim());
 
             if (baseUrlSet == true)
             {
