@@ -8,11 +8,11 @@ namespace FluidHttp.Request
 {
     public class FluidRequest
     {
-        public IReadOnlyList<Parameter> Parameters
+        public List<Parameter> Parameters
         {
             get
             {
-                return parameters.AsReadOnly();
+                return parameters;
             }
         }
 
@@ -57,7 +57,7 @@ namespace FluidHttp.Request
 
         public HttpMethod Method { get; set; } = HttpMethod.Get;
 
-        private List<Parameter> parameters = new List<Parameter>();
+        private readonly List<Parameter> parameters = new List<Parameter>();
         private string url = string.Empty;
 
         public void AddQueryParameter(string parameterName, object value)
