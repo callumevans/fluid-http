@@ -207,8 +207,8 @@ namespace FluidHttp.Tests.Client
         }
 
         [Theory]
-        [InlineData("with spaces")]
-        [InlineData("http://www.test.com/")]
+        [InlineData("http://www.test.com/?test=123")]
+        [InlineData("#")]
         public async Task Fetch_InvalidRelativeResourceUrl_BaseUrlSet_ThrowException(string badResource)
         {
             // Arrange
@@ -456,6 +456,76 @@ namespace FluidHttp.Tests.Client
                     "SendAsync",
                     Times.Once(),
                     ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(url + resource)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task Fetch_DefaultToBaseUrlIfNoUrlProvided()
+        {
+            // Arrange
+            client.BaseUrl = url;
+
+            // Act
+            await client.FetchAsync();
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(url)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task Fetch_DefaultToBaseUrlIfNoUrlProvided_NoBaseUrl_ThrowsNoUrlException()
+        {
+            // Act + Assert
+            await Assert.ThrowsAsync<NoUrlProvidedException>(
+                async () => await client.FetchAsync());
+        }
+
+        [Theory]
+        [InlineData("http://local host.com")]
+        [InlineData("http://local%20host.com")]
+        public async Task Fetch_IllegalCharactersInBaseUrl_InvalidAbsoluteUriException(string baseUrl)
+        {
+            // Act + Assert
+            await Assert.ThrowsAsync<BadAbsoluteUriException>(
+                async () => await client.FetchAsync(baseUrl));
+        }
+
+        [Theory]
+        [InlineData(" ", "%20")]
+        [InlineData("\"", "%22")]
+        [InlineData("%", "%25")]
+        [InlineData("<", "%3C")]
+        [InlineData(">", "%3E")]
+        [InlineData("\\", "%5C")]
+        [InlineData("^", "%5E")]
+        [InlineData("`", "%60")]
+        [InlineData("{", "%7B")]
+        [InlineData("|", "%7C")]
+        [InlineData("}", "%7D")]
+        public async Task Fetch_SubstituteIllegalCharactersInResourceUrl(
+            string character, string encoded)
+        {
+            // Arrange
+            client.BaseUrl = url;
+
+            string resource =  $"test{character}resource";
+
+            // Act
+           await client.FetchAsync(resource);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri.OriginalString == $"{url}/test{encoded}resource"),
                     ItExpr.IsAny<CancellationToken>());
         }
     }
