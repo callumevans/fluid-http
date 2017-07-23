@@ -4,6 +4,7 @@ using FluidHttp.Response;
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace FluidHttp.Client
@@ -79,17 +80,19 @@ namespace FluidHttp.Client
             // Build up query string for request url
             if (request.Parameters.Count > 0)
             {
-                string queryString = "?";
+                var builder = new StringBuilder();
+
+                builder.Append("?");
 
                 foreach (var parameter in request.Parameters)
                 {
-                    queryString += parameter.ToString();
+                    builder.Append(parameter.ToString());
 
                     if (parameter != request.Parameters.Last())
-                        queryString += "&";
+                        builder.Append("&");
                 }
 
-                requestUrl += queryString;
+                requestUrl += builder.ToString();
             }
 
             // Execute request
