@@ -4,6 +4,7 @@ using FluidHttp.Response;
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace FluidHttp.Client
@@ -30,19 +31,13 @@ namespace FluidHttp.Client
         }
 
         private readonly HttpClient httpClient;
-        private string baseUrl = null;
-        private bool baseUrlSet = false;
+
+        private string baseUrl;
+        private bool baseUrlSet;
 
         public FluidClient(HttpClient httpClient)
         {
             this.httpClient = httpClient;
-        }
-
-        public async Task<FluidResponse> FetchAsync()
-        {
-            if (baseUrlSet == false) throw new NoUrlProvidedException();
-
-            return await FetchAsync("");
         }
 
         public async Task<FluidResponse> FetchAsync(FluidRequest request)
@@ -79,14 +74,16 @@ namespace FluidHttp.Client
             // Build up query string for request url
             if (request.Parameters.Count > 0)
             {
-                string queryString = "?";
+                var queryString = new StringBuilder();
+
+                queryString.Append("?");
 
                 foreach (var parameter in request.Parameters)
                 {
-                    queryString += parameter.ToString();
+                    queryString.Append(parameter.ToString());
 
                     if (parameter != request.Parameters.Last())
-                        queryString += "&";
+                        queryString.Append("&");
                 }
 
                 requestUrl += queryString;
@@ -100,29 +97,39 @@ namespace FluidHttp.Client
 
             var response = new FluidResponse();
 
-            response.Content = await httpResponse.Content.ReadAsStringAsync();
+            response.Content = await httpResponse.Content
+                .ReadAsStringAsync()
+                .ConfigureAwait(false);
 
             return response;
         }
 
-        public async Task<FluidResponse> FetchAsync(string url)
+        public Task<FluidResponse> FetchAsync()
         {
-            return await FetchAsync(url, HttpMethod.Get);
+            if (baseUrlSet == false)
+                throw new NoUrlProvidedException();
+
+            return FetchAsync("");
         }
 
-        public async Task<FluidResponse> FetchAsync(string url, string method)
+        public Task<FluidResponse> FetchAsync(string url)
         {
-            return await FetchAsync(url, new HttpMethod(method));
+            return FetchAsync(url, HttpMethod.Get);
         }
 
-        public async Task<FluidResponse> FetchAsync(string url, HttpMethod method)
+        public Task<FluidResponse> FetchAsync(string url, string method)
+        {
+            return FetchAsync(url, new HttpMethod(method));
+        }
+
+        public Task<FluidResponse> FetchAsync(string url, HttpMethod method)
         {
             FluidRequest request = new FluidRequest();
 
             request.Url = url;
             request.Method = method;
 
-            return await FetchAsync(request);
+            return FetchAsync(request);
         }
     }
 }

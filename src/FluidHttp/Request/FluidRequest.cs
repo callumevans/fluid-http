@@ -8,11 +8,11 @@ namespace FluidHttp.Request
 {
     public class FluidRequest
     {
-        public IReadOnlyList<Parameter> Parameters
+        public List<Parameter> Parameters
         {
             get
             {
-                return parameters.AsReadOnly();
+                return parameters;
             }
         }
 
@@ -24,15 +24,19 @@ namespace FluidHttp.Request
             }
             set
             {
+                string newUrl;
+
                 if (value == null)
-                    value = string.Empty;
+                    newUrl = string.Empty;
+                else
+                    newUrl = value;
 
                 // Parse query parameters
-                int queryStringStartIndex = value.IndexOf('?');
+                int queryStringStartIndex = newUrl.IndexOf('?');
 
-                if (queryStringStartIndex > -1 && value.Length > 1)
+                if (queryStringStartIndex > -1 && newUrl.Length > 1)
                 {
-                    string queryString = value.Substring(queryStringStartIndex);
+                    string queryString = newUrl.Substring(queryStringStartIndex);
 
                     if (Uri.IsWellFormedUriString(queryString, UriKind.Relative))
                     {
@@ -43,17 +47,17 @@ namespace FluidHttp.Request
                                 x => new Parameter(x.Name, x.Value)));
 
                         // Remove query string from url
-                        value = value.Substring(0, queryStringStartIndex);
+                        newUrl = newUrl.Substring(0, queryStringStartIndex);
                     }
                 }
 
-                this.url = value.Trim();
+                this.url = newUrl.Trim();
             }
         }
 
         public HttpMethod Method { get; set; } = HttpMethod.Get;
 
-        private List<Parameter> parameters = new List<Parameter>();
+        private readonly List<Parameter> parameters = new List<Parameter>();
         private string url = string.Empty;
 
         public void AddQueryParameter(string parameterName, object value)

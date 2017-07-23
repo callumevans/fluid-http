@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace FluidHttp
 {
@@ -17,28 +18,29 @@ namespace FluidHttp
 
         public override string ToString()
         {
-            string output = string.Empty;
+            var parameterString = new StringBuilder();
 
             if (Value == null)
             {
-                output += $"{Name}";
+                parameterString.Append($"{Name}");
             }                
             else if (Value is IEnumerable<object> enumerable)
             {
                 foreach (var value in enumerable)
                 {
-                    output += $"{Name}[]={value.ToString()}";
+                    parameterString.Append($"{Name}[]={value.ToString()}");
 
                     if (value != enumerable.Last())
-                        output += "&";
+                        parameterString.Append("&");
                 }
             }
             else
             {
-                output += $"{Name}={Value.ToString()}";
+                parameterString.Append(
+                    $"{Name}={Value.ToString()}");
             }
 
-            return output.Replace(' ', '+');
+            return parameterString.ToString().Replace(' ', '+');
         }
     }
 }
