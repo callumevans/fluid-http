@@ -39,13 +39,6 @@ namespace FluidHttp.Client
             this.httpClient = httpClient;
         }
 
-        public async Task<FluidResponse> FetchAsync()
-        {
-            if (baseUrlSet == false) throw new NoUrlProvidedException();
-
-            return await FetchAsync("");
-        }
-
         public async Task<FluidResponse> FetchAsync(FluidRequest request)
         {
             string requestUrl = Uri.EscapeUriString(
@@ -108,24 +101,32 @@ namespace FluidHttp.Client
             return response;
         }
 
-        public async Task<FluidResponse> FetchAsync(string url)
+        public Task<FluidResponse> FetchAsync()
         {
-            return await FetchAsync(url, HttpMethod.Get);
+            if (baseUrlSet == false)
+                throw new NoUrlProvidedException();
+
+            return FetchAsync("");
         }
 
-        public async Task<FluidResponse> FetchAsync(string url, string method)
+        public Task<FluidResponse> FetchAsync(string url)
         {
-            return await FetchAsync(url, new HttpMethod(method));
+            return FetchAsync(url, HttpMethod.Get);
         }
 
-        public async Task<FluidResponse> FetchAsync(string url, HttpMethod method)
+        public Task<FluidResponse> FetchAsync(string url, string method)
+        {
+            return FetchAsync(url, new HttpMethod(method));
+        }
+
+        public Task<FluidResponse> FetchAsync(string url, HttpMethod method)
         {
             FluidRequest request = new FluidRequest();
 
             request.Url = url;
             request.Method = method;
 
-            return await FetchAsync(request);
+            return FetchAsync(request);
         }
     }
 }
