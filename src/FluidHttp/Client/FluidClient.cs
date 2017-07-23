@@ -38,9 +38,16 @@ namespace FluidHttp.Client
             this.httpClient = httpClient;
         }
 
+        public async Task<FluidResponse> FetchAsync()
+        {
+            if (baseUrlSet == false) throw new NoUrlProvidedException();
+
+            return await FetchAsync("");
+        }
+
         public async Task<FluidResponse> FetchAsync(FluidRequest request)
         {
-            string requestUrl = request.Url.Trim();
+            string requestUrl = Uri.EscapeUriString(request.Url.Trim());
 
             if (baseUrlSet == true)
             {
@@ -55,7 +62,7 @@ namespace FluidHttp.Client
                 // Safely combine the base url with the resource url
 
                 string rootUrl = this.baseUrl.TrimEnd('/', '\\', ' ');
-                resourceUrl = request.Url.TrimStart('/', '\\', ' ');
+                resourceUrl = resourceUrl.TrimStart('/', '\\', ' ');
 
                 requestUrl = $"{rootUrl}/{resourceUrl}";
             }
