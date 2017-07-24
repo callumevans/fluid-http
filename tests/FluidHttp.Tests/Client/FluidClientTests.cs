@@ -5,6 +5,7 @@ using FluidHttp.Response;
 using FluidHttp.Tests.Abstractions;
 using Moq;
 using Moq.Protected;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -61,20 +62,20 @@ namespace FluidHttp.Tests.Client
             Assert.IsType<FluidResponse>(response);
             Assert.NotNull(response);
         }
-        
+
         [Fact]
         public async Task Fetch_GetsContentFromUrl()
         {
             // Act
             await client.FetchAsync(url);
-            
+
             // Assert
             messageHandler
                 .Protected()
                 .Verify(
-                    "SendAsync", 
-                    Times.Once(), 
-                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(url)), 
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(url)),
                     ItExpr.IsAny<CancellationToken>());
         }
 
@@ -514,10 +515,10 @@ namespace FluidHttp.Tests.Client
             // Arrange
             client.BaseUrl = url;
 
-            string resource =  $"test{character}resource";
+            string resource = $"test{character}resource";
 
             // Act
-           await client.FetchAsync(resource);
+            await client.FetchAsync(resource);
 
             // Assert
             messageHandler
@@ -526,6 +527,32 @@ namespace FluidHttp.Tests.Client
                     "SendAsync",
                     Times.Once(),
                     ItExpr.Is<HttpRequestMessage>(i => i.RequestUri.OriginalString == $"{url}/test{encoded}resource"),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task Fetch_WithBodyParameter_AddToRequestBody()
+        {
+            // Arrange
+            client.BaseUrl = url;
+
+            FluidRequest request = new FluidRequest();
+
+            request.AddBodyParameter("TestValue", "test value");
+
+            string expected = "TestValue=test+value";
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i =>
+                        i.Content.ReadAsStringAsync().Result == expected),
                     ItExpr.IsAny<CancellationToken>());
         }
     }

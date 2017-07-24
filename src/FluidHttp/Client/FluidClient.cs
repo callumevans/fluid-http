@@ -90,8 +90,8 @@ namespace FluidHttp.Client
             }
 
             // Execute request
-
             var httpRequest = new HttpRequestMessage(request.Method, requestUrl);
+            httpRequest.Content = new StringContent("TestValue=test+value");
 
             HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
 
