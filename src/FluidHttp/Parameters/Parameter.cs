@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text;
 
-namespace FluidHttp
+namespace FluidHttp.Parameters
 {
     public class Parameter
     {
@@ -10,10 +10,18 @@ namespace FluidHttp
 
         public object Value { get; }
 
+        public ParameterType Type { get; set; }
+
         public Parameter(string name, object value)
+            : this(name, value, ParameterType.Query)
+        {
+        }
+
+        public Parameter(string name, object value, ParameterType type)
         {
             this.Name = name;
             this.Value = value;
+            this.Type = type;
         }
 
         public override string ToString()
@@ -40,7 +48,7 @@ namespace FluidHttp
                     $"{Name}={Value.ToString()}");
             }
 
-            return parameterString.ToString().Replace(' ', '+');
+            return parameterString.ToString();
         }
     }
 }

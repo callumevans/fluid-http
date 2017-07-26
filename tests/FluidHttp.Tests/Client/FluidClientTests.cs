@@ -5,6 +5,7 @@ using FluidHttp.Response;
 using FluidHttp.Tests.Abstractions;
 using Moq;
 using Moq.Protected;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -61,20 +62,20 @@ namespace FluidHttp.Tests.Client
             Assert.IsType<FluidResponse>(response);
             Assert.NotNull(response);
         }
-        
+
         [Fact]
         public async Task Fetch_GetsContentFromUrl()
         {
             // Act
             await client.FetchAsync(url);
-            
+
             // Assert
             messageHandler
                 .Protected()
                 .Verify(
-                    "SendAsync", 
-                    Times.Once(), 
-                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(url)), 
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(url)),
                     ItExpr.IsAny<CancellationToken>());
         }
 
@@ -311,15 +312,17 @@ namespace FluidHttp.Tests.Client
                     ItExpr.IsAny<CancellationToken>());
         }
 
-        [Fact]
-        public async Task Fetch_RequestHasQueryParameter_BuildQueryString()
+        [Theory]
+        [InlineData("NumberTest", 123)]
+        [InlineData("StringTest", "hello+world")]
+        public async Task Fetch_RequestHasQueryParameter_BuildQueryString(string key, object value)
         {
             // Arrange
-            string expectedUrl = url + "?NumberTest=123";
+            string expectedUrl = url + $"?{key}={value}";
 
             FluidRequest request = new FluidRequest();
 
-            request.AddQueryParameter("NumberTest", 123);
+            request.AddQueryParameter(key, value);
 
             request.Url = url;
 
@@ -375,7 +378,7 @@ namespace FluidHttp.Tests.Client
             string baseUrl = "http://localhost.com/";
             string expectedUrl = baseUrl +
                 "?TestParameter=True&" +
-                "OtherTest=hello+world!&" +
+                "OtherTest=hello%20world!&" +
                 "ArrayTest[]=val1&ArrayTest[]=val2&ArrayTest[]=val3&" +
                 "NumberTest=123";
 
@@ -412,8 +415,8 @@ namespace FluidHttp.Tests.Client
         public async Task Fetch_RequestUrlHasQueryParameters_ResourceUrlHasQueryString()
         {
             // Arrange
-            string requestUrl = "http://localhost.com/?MyParameter=hello+world";
-            string expectedUrl = "http://localhost.com/?MyParameter=hello+world&MyOtherParameter=hello+mars";
+            string requestUrl = "http://localhost.com/?MyParameter=hello%20world";
+            string expectedUrl = "http://localhost.com/?MyParameter=hello%20world&MyOtherParameter=hello%20mars";
 
             FluidRequest request = new FluidRequest();
 
@@ -514,10 +517,10 @@ namespace FluidHttp.Tests.Client
             // Arrange
             client.BaseUrl = url;
 
-            string resource =  $"test{character}resource";
+            string resource = $"test{character}resource";
 
             // Act
-           await client.FetchAsync(resource);
+            await client.FetchAsync(resource);
 
             // Assert
             messageHandler
@@ -526,6 +529,72 @@ namespace FluidHttp.Tests.Client
                     "SendAsync",
                     Times.Once(),
                     ItExpr.Is<HttpRequestMessage>(i => i.RequestUri.OriginalString == $"{url}/test{encoded}resource"),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Theory]
+        [InlineData("Key", 123)]
+        [InlineData("OtherKey", "string+value")]
+        public async Task Fetch_WithBodyParameter_AddToRequestBody(string key, object value)
+        {
+            // Arrange
+            client.BaseUrl = url;
+
+            FluidRequest request = new FluidRequest();
+
+            request.AddBodyParameter(key, value);
+
+            string expected = $"{key}={value}";
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i =>
+                        i.Content.ReadAsStringAsync().Result == expected),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Theory]
+        [InlineData(" ", "%20")]
+        [InlineData("\"", "%22")]
+        [InlineData("%", "%25")]
+        [InlineData("<", "%3C")]
+        [InlineData(">", "%3E")]
+        [InlineData("\\", "%5C")]
+        [InlineData("^", "%5E")]
+        [InlineData("`", "%60")]
+        [InlineData("{", "%7B")]
+        [InlineData("|", "%7C")]
+        [InlineData("}", "%7D")]
+        public async Task Fetch_WithBodyParameters_EncodeCharacters(
+            string character, string encoded)
+        {
+            // Arrange
+            client.BaseUrl = url;
+
+            FluidRequest request = new FluidRequest();
+
+            request.AddBodyParameter("TestValue", character);
+
+            string expected = $"TestValue={encoded}";
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i =>
+                        i.Content.ReadAsStringAsync().Result == expected),
                     ItExpr.IsAny<CancellationToken>());
         }
     }
