@@ -1,7 +1,9 @@
 ﻿using FluidHttp.Exceptions;
+using FluidHttp.Parameters;
 using FluidHttp.Request;
 using FluidHttp.Response;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -42,8 +44,7 @@ namespace FluidHttp.Client
 
         public async Task<FluidResponse> FetchAsync(FluidRequest request)
         {
-            string requestUrl = Uri.EscapeUriString(
-                request.Url.Trim());
+            string requestUrl = Uri.EscapeUriString(request.Url.Trim());
 
             if (baseUrlSet == true)
             {
@@ -72,26 +73,32 @@ namespace FluidHttp.Client
             }
 
             // Build up query string for request url
-            if (request.Parameters.Count > 0)
+            List<Parameter> queryStringParameters = request.Parameters
+                .Where(x => x.Type == ParameterType.Query)
+                .ToList();
+
+            if (queryStringParameters.Any())
             {
-                var queryString = new StringBuilder();
+                requestUrl += "?" + BuildQueryString(queryStringParameters);
+            }
 
-                queryString.Append("?");
+            // Build body query sting
+            string bodyContent = string.Empty;
 
-                foreach (var parameter in request.Parameters)
-                {
-                    queryString.Append(parameter.ToString());
+            List<Parameter> bodyQueryStringParameters = request.Parameters
+                .Where(x => x.Type == ParameterType.Body)
+                .ToList();
 
-                    if (parameter != request.Parameters.Last())
-                        queryString.Append("&");
-                }
-
-                requestUrl += queryString;
+            if (bodyQueryStringParameters.Any())
+            {
+                bodyContent = BuildQueryString(bodyQueryStringParameters);
             }
 
             // Execute request
             var httpRequest = new HttpRequestMessage(request.Method, requestUrl);
-            httpRequest.Content = new StringContent("TestValue=test+value");
+
+            if (string.IsNullOrWhiteSpace(bodyContent) == false)
+                httpRequest.Content = new StringContent(bodyContent);
 
             HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
 
@@ -130,6 +137,21 @@ namespace FluidHttp.Client
             request.Method = method;
 
             return FetchAsync(request);
+        }
+
+        private string BuildQueryString(IEnumerable<Parameter> parameters)
+        {
+            var queryString = new StringBuilder();
+
+            foreach (var parameter in parameters)
+            {
+                queryString.Append(parameter.ToString());
+
+                if (parameter != parameters.Last())
+                    queryString.Append("&");
+            }
+
+            return Uri.EscapeUriString(queryString.ToString());
         }
     }
 }

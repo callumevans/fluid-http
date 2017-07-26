@@ -48,7 +48,7 @@ namespace FluidHttp.Parameters
                     $"{Name}={Value.ToString()}");
             }
 
-            return parameterString.ToString().Replace(' ', '+');
+            return parameterString.ToString();
         }
     }
 }
