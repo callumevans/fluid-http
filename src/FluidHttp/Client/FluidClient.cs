@@ -1,5 +1,4 @@
 ﻿using FluidHttp.Exceptions;
-using FluidHttp.Parameters;
 using FluidHttp.Request;
 using FluidHttp.Response;
 using System;
@@ -82,6 +81,9 @@ namespace FluidHttp.Client
                 requestUrl += "?" + BuildQueryString(queryStringParameters);
             }
 
+            // Prepare request message
+            var httpRequest = new HttpRequestMessage(request.Method, requestUrl);
+
             // Build body query sting
             string bodyContent = string.Empty;
 
@@ -94,9 +96,13 @@ namespace FluidHttp.Client
                 bodyContent = BuildQueryString(bodyQueryStringParameters);
             }
 
-            // Execute request
-            var httpRequest = new HttpRequestMessage(request.Method, requestUrl);
+            // Build headers
+            foreach (var header in request.Headers)
+            {
+                httpRequest.Headers.Add(header.Key, header.Value);
+            }
 
+            // Execute request
             if (string.IsNullOrWhiteSpace(bodyContent) == false)
                 httpRequest.Content = new StringContent(bodyContent);
 
