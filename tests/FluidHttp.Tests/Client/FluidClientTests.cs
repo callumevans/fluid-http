@@ -437,6 +437,32 @@ namespace FluidHttp.Tests.Client
                     ItExpr.IsAny<CancellationToken>());
         }
 
+        [Fact]
+        public async Task Fetch_RequestHasMultipleParametersWithSameName()
+        {
+            // Arrange
+            client.BaseUrl = url;
+
+            string expectedUrl = "http://localhost.com/?Parameter=red&Parameter=blue";
+
+            FluidRequest request = new FluidRequest();
+
+            request.AddQueryParameter("Parameter", "red");
+            request.AddQueryParameter("Parameter", "blue");
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(expectedUrl)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
         [Theory]
         [InlineData("?")]
         [InlineData("?TestVal=")]
