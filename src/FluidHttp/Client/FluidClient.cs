@@ -151,13 +151,41 @@ namespace FluidHttp.Client
 
             foreach (var parameter in parameters)
             {
-                queryString.Append(parameter.ToString());
+                queryString.Append(ParameterToQueryString(parameter));
 
                 if (parameter != parameters.Last())
                     queryString.Append("&");
             }
 
             return Uri.EscapeUriString(queryString.ToString());
+        }
+
+        private string ParameterToQueryString(Parameter parameter)
+        {
+            var parameterString = new StringBuilder();
+
+            if (parameter == null || parameter.Value == null)
+            {
+                parameterString.Append($"{parameter.Name}");
+            }
+            else if (parameter.Value is IEnumerable<object> enumerable)
+            {
+                foreach (var value in enumerable)
+                {
+                    parameterString.Append(
+                        $"{parameter.Name}[]={value.ToString()}");
+
+                    if (value != enumerable.Last())
+                        parameterString.Append("&");
+                }
+            }
+            else
+            {
+                parameterString.Append(
+                    $"{parameter.Name}={parameter.Value.ToString()}");
+            }
+
+            return parameterString.ToString();
         }
     }
 }
