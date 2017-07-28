@@ -1,4 +1,4 @@
-﻿namespace FluidHttp.Parameters
+﻿namespace FluidHttp.Request
 {
     public enum ParameterType
     {

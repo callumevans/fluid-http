@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text;
 
-namespace FluidHttp.Parameters
+namespace FluidHttp.Request
 {
     public class Parameter
     {

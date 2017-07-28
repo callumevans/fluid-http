@@ -1,5 +1,4 @@
-﻿using FluidHttp.Parameters;
-using Flurl;
+﻿using Flurl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +8,14 @@ namespace FluidHttp.Request
 {
     public class FluidRequest
     {
+        public List<Header> Headers
+        {
+            get
+            {
+                return headers;
+            }
+        }
+
         public List<Parameter> Parameters
         {
             get
@@ -58,23 +65,27 @@ namespace FluidHttp.Request
 
         public HttpMethod Method { get; set; } = HttpMethod.Get;
 
+        private readonly List<Header> headers = new List<Header>();
         private readonly List<Parameter> parameters = new List<Parameter>();
         private string url = string.Empty;
 
-        public void AddQueryParameter(
-            string parameterName, object value)
+        public void AddHeader(string headerName, string value)
+        {
+            this.headers.Add(new Header(
+                headerName, value));
+        }
+
+        public void AddQueryParameter(string parameterName, object value)
         {
             AddParameter(parameterName, value, ParameterType.Query);
         }
 
-        public void AddBodyParameter(
-            string parameterName, object value)
+        public void AddBodyParameter(string parameterName, object value)
         {
             AddParameter(parameterName, value, ParameterType.Body);
         }
 
-        public void AddParameter(
-            string parameterName, object value, ParameterType type)
+        public void AddParameter(string parameterName, object value, ParameterType type)
         {
             this.parameters.Add(new Parameter(
                 parameterName, value, type));

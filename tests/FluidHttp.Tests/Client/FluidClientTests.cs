@@ -5,9 +5,9 @@ using FluidHttp.Response;
 using FluidHttp.Tests.Abstractions;
 using Moq;
 using Moq.Protected;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -595,6 +595,30 @@ namespace FluidHttp.Tests.Client
                     Times.Once(),
                     ItExpr.Is<HttpRequestMessage>(i =>
                         i.Content.ReadAsStringAsync().Result == expected),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task Fetch_WithHeaders()
+        {
+            // Arrange
+            client.BaseUrl = url;
+
+            FluidRequest request = new FluidRequest();
+
+            request.AddHeader("Key", "Value");
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i =>
+                        i.Headers.GetValues("Key").Single() == "Value"),
                     ItExpr.IsAny<CancellationToken>());
         }
     }
