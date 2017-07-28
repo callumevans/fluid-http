@@ -17,7 +17,8 @@ namespace FluidHttp.Tests.Client
 {
     public class FluidClientTests
     {
-        private readonly Mock<FakeHttpMessageHandler> messageHandler = new Mock<FakeHttpMessageHandler>() { CallBase = true };
+        private readonly Mock<FakeHttpMessageHandler> messageHandler
+            = new Mock<FakeHttpMessageHandler>() { CallBase = true };
 
         private readonly FluidClient client;
 
@@ -423,6 +424,32 @@ namespace FluidHttp.Tests.Client
             request.Url = requestUrl;
 
             request.AddQueryParameter("MyOtherParameter", "hello mars");
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(expectedUrl)),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task Fetch_RequestHasMultipleParametersWithSameName()
+        {
+            // Arrange
+            client.BaseUrl = url;
+
+            string expectedUrl = "http://localhost.com/?Parameter=red&Parameter=blue";
+
+            FluidRequest request = new FluidRequest();
+
+            request.AddQueryParameter("Parameter", "red");
+            request.AddQueryParameter("Parameter", "blue");
 
             // Act
             await client.FetchAsync(request);

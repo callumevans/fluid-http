@@ -1,4 +1,5 @@
-﻿using Flurl;
+﻿using FluidHttp.Exceptions;
+using Flurl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,13 +9,8 @@ namespace FluidHttp.Request
 {
     public class FluidRequest
     {
-        public List<Header> Headers
-        {
-            get
-            {
-                return headers;
-            }
-        }
+        public Dictionary<string, string> Headers { get; private set; } 
+            = new Dictionary<string, string>();
 
         public List<Parameter> Parameters
         {
@@ -65,14 +61,15 @@ namespace FluidHttp.Request
 
         public HttpMethod Method { get; set; } = HttpMethod.Get;
 
-        private readonly List<Header> headers = new List<Header>();
         private readonly List<Parameter> parameters = new List<Parameter>();
         private string url = string.Empty;
 
         public void AddHeader(string headerName, string value)
         {
-            this.headers.Add(new Header(
-                headerName, value));
+            if (this.Headers.ContainsKey(headerName))
+                throw new HeaderAlreadyAddedException();
+
+            this.Headers.Add(headerName, value);
         }
 
         public void AddQueryParameter(string parameterName, object value)

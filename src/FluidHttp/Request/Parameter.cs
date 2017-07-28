@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace FluidHttp.Request
+﻿namespace FluidHttp.Request
 {
     public class Parameter
     {
@@ -22,33 +18,6 @@ namespace FluidHttp.Request
             this.Name = name;
             this.Value = value;
             this.Type = type;
-        }
-
-        public override string ToString()
-        {
-            var parameterString = new StringBuilder();
-
-            if (Value == null)
-            {
-                parameterString.Append($"{Name}");
-            }                
-            else if (Value is IEnumerable<object> enumerable)
-            {
-                foreach (var value in enumerable)
-                {
-                    parameterString.Append($"{Name}[]={value.ToString()}");
-
-                    if (value != enumerable.Last())
-                        parameterString.Append("&");
-                }
-            }
-            else
-            {
-                parameterString.Append(
-                    $"{Name}={Value.ToString()}");
-            }
-
-            return parameterString.ToString();
         }
     }
 }
