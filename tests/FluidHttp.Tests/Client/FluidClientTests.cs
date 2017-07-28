@@ -633,7 +633,7 @@ namespace FluidHttp.Tests.Client
 
             FluidRequest request = new FluidRequest();
 
-            request.AddHeader("Key", "Value");
+            request.SetHeader("Key", "Value");
 
             // Act
             await client.FetchAsync(request);
@@ -646,6 +646,54 @@ namespace FluidHttp.Tests.Client
                     Times.Once(),
                     ItExpr.Is<HttpRequestMessage>(i =>
                         i.Headers.GetValues("Key").Single() == "Value"),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task Fetch_NoContentTypeHeader_DefaultToWwwFormEncoded()
+        {
+            // Arrange
+            client.BaseUrl = url;
+
+            // Act
+            await client.FetchAsync();
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i =>
+                        i.Content.Headers.ContentType.MediaType == "application/x-www-form-encoded"),
+                    ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Theory]
+        [InlineData("application/x-www-form-encoded")]
+        [InlineData("application/json")]
+        [InlineData("text/plain")]
+        [InlineData("custom/type")]
+        public async Task Fetch_ContentTypeSet(string type)
+        {
+            // Arrange
+            client.BaseUrl = url;
+
+            FluidRequest request = new FluidRequest();
+
+            request.ContentType = type;
+
+            // Act
+            await client.FetchAsync(request);
+
+            // Assert
+            messageHandler
+                .Protected()
+                .Verify(
+                    "SendAsync",
+                    Times.Once(),
+                    ItExpr.Is<HttpRequestMessage>(i =>
+                        i.Content.Headers.ContentType.MediaType == type),
                     ItExpr.IsAny<CancellationToken>());
         }
     }

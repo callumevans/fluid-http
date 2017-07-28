@@ -1,5 +1,4 @@
-﻿using FluidHttp.Exceptions;
-using Flurl;
+﻿using Flurl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,17 +58,38 @@ namespace FluidHttp.Request
             }
         }
 
+        public string ContentType
+        {
+            set
+            {
+                SetHeader(RequestHeaders.ContentType, value);
+            }
+            get
+            {
+                if (Headers.ContainsKey(RequestHeaders.ContentType))
+                {
+                    return Headers[RequestHeaders.ContentType];
+                }
+                else
+                {
+                    return MimeTypes.ApplicationFormEncoded;
+                }
+            }
+        }
+
         public HttpMethod Method { get; set; } = HttpMethod.Get;
 
         private readonly List<Parameter> parameters = new List<Parameter>();
         private string url = string.Empty;
 
-        public void AddHeader(string headerName, string value)
+        public void SetHeader(string header, string value)
         {
-            if (this.Headers.ContainsKey(headerName))
-                throw new HeaderAlreadyAddedException();
+            this.Headers[header] = value;
+        }
 
-            this.Headers.Add(headerName, value);
+        public void RemoveHeader(string header)
+        {
+            this.Headers.Remove(header);
         }
 
         public void AddQueryParameter(string parameterName, object value)

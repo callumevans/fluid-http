@@ -96,6 +96,14 @@ namespace FluidHttp.Client
                 bodyContent = BuildQueryString(bodyQueryStringParameters);
             }
 
+            // Set content type
+            string contentTypeValue;
+            request.Headers.TryGetValue(RequestHeaders.ContentType, out contentTypeValue);
+
+            httpRequest.Content = new StringContent(bodyContent, Encoding.UTF8, contentTypeValue ?? MimeTypes.ApplicationFormEncoded);
+
+            request.Headers.Remove(RequestHeaders.ContentType);
+
             // Build headers
             foreach (var header in request.Headers)
             {
@@ -103,9 +111,6 @@ namespace FluidHttp.Client
             }
 
             // Execute request
-            if (string.IsNullOrWhiteSpace(bodyContent) == false)
-                httpRequest.Content = new StringContent(bodyContent);
-
             HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
 
             var response = new FluidResponse();

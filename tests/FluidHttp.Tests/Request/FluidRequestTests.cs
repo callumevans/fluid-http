@@ -14,17 +14,26 @@ namespace FluidHttp.Tests.Request
         }
 
         [Fact]
-        public void AddDuplicateHeader_ThrowsHeaderAlreadyAddedException()
+        public void SetHeader_OverwritesExistingHeader()
         {
             // Arrange
-            FluidRequest request = new FluidRequest();
+            request.SetHeader("HeaderKey", "HeaderValue");
 
-            // Act + Assert
-            Assert.Throws<HeaderAlreadyAddedException>(() =>
-            {
-                request.AddHeader("HeaderKey", "HeaderValue");
-                request.AddHeader("HeaderKey", "OtherValue");
-            });
+            // Act
+            request.SetHeader("HeaderKey", "NewHeader!");
+
+            // Assert
+            Assert.True(request.Headers["HeaderKey"] == "NewHeader!");
+        }
+
+        [Fact]
+        public void SetHeader_AddIfHeaderDoesntExist()
+        {
+            // Act
+            request.SetHeader("HeaderKey", "HeaderValue");
+
+            // Assert
+            Assert.True(request.Headers["HeaderKey"] == "HeaderValue");
         }
     }
 }
