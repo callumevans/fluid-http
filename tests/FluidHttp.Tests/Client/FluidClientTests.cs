@@ -17,7 +17,8 @@ namespace FluidHttp.Tests.Client
 {
     public class FluidClientTests
     {
-        private readonly Mock<FakeHttpMessageHandler> messageHandler = new Mock<FakeHttpMessageHandler>() { CallBase = true };
+        private readonly Mock<FakeHttpMessageHandler> messageHandler
+            = new Mock<FakeHttpMessageHandler>() { CallBase = true };
 
         private readonly FluidClient client;
 

@@ -2,7 +2,7 @@
 
 namespace FluidHttp.Exceptions
 {
-    public class BadRelativeUriException : Exception
+    public class HeaderAlreadyAddedException : Exception
     {
     }
 }

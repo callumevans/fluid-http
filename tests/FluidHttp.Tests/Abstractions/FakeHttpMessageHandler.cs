@@ -6,7 +6,8 @@ namespace FluidHttp.Tests.Abstractions
 {
     public class FakeHttpMessageHandler : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var responseMessage = new HttpResponseMessage();
 
