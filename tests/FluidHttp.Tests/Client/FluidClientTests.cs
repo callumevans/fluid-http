@@ -465,13 +465,13 @@ namespace FluidHttp.Tests.Client
         }
 
         [Theory]
-        [InlineData("?")]
-        [InlineData("?TestVal=")]
-        [InlineData("?TestVal")]
-        [InlineData("?TestVal&OtherTest=true")]
-        [InlineData("?TestVal&OtherVal")]
-        [InlineData("?=test&OtherVal")]
-        public async Task Fetch_AwkwardQueryString_StillSendRequest(string resource)
+        [InlineData("?", "?")]
+        [InlineData("?TestVal=", "?TestVal=")]
+        [InlineData("?TestVal", "?TestVal=")]
+        [InlineData("?TestVal&OtherTest=true", "?TestVal=&OtherTest=true")]
+        [InlineData("?TestVal&OtherVal", "?TestVal=&OtherVal=")]
+        [InlineData("?=test&OtherVal", "?=test&OtherVal=")]
+        public async Task Fetch_AwkwardQueryString_StillSendRequest(string resource, string expected)
         {
             // Arrange
             client.BaseUrl = url;
@@ -485,7 +485,7 @@ namespace FluidHttp.Tests.Client
                 .Verify(
                     "SendAsync",
                     Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(url + resource)),
+                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(url + expected)),
                     ItExpr.IsAny<CancellationToken>());
         }
 

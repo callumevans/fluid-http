@@ -1,15 +1,15 @@
-﻿using Flurl;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 
 namespace FluidHttp.Request
 {
     public class FluidRequest
     {
-        public Dictionary<string, string> Headers { get; private set; } 
+        public Dictionary<string, string> Headers { get; private set; }
             = new Dictionary<string, string>();
+
+        private List<Parameter> parameters = new List<Parameter>();
 
         public List<Parameter> Parameters
         {
@@ -18,6 +18,8 @@ namespace FluidHttp.Request
                 return parameters;
             }
         }
+
+        private string url = string.Empty;
 
         public string Url
         {
@@ -37,20 +39,20 @@ namespace FluidHttp.Request
                 // Parse query parameters
                 int queryStringStartIndex = newUrl.IndexOf('?');
 
-                if (queryStringStartIndex > -1 && newUrl.Length > 1)
+                if (queryStringStartIndex > -1)
                 {
-                    string queryString = newUrl.Substring(queryStringStartIndex);
+                    string queryString = newUrl.Substring(
+                        queryStringStartIndex, newUrl.Length - queryStringStartIndex).Trim('?');
 
-                    if (Uri.IsWellFormedUriString(queryString, UriKind.Relative))
+                    if (string.IsNullOrWhiteSpace(queryString) == false)
                     {
-                        QueryParamCollection collection = Flurl.Url.ParseQueryParams(queryString);
+                        if (Uri.IsWellFormedUriString(queryString, UriKind.Relative))
+                        {
+                            parameters = ParseQueryString(queryString);
 
-                        parameters.AddRange(
-                            collection.Select(
-                                x => new Parameter(x.Name, x.Value)));
-
-                        // Remove query string from url
-                        newUrl = newUrl.Substring(0, queryStringStartIndex);
+                            // Remove query string from url
+                            newUrl = newUrl.Substring(0, newUrl.IndexOf('?'));
+                        }
                     }
                 }
 
@@ -79,9 +81,6 @@ namespace FluidHttp.Request
 
         public HttpMethod Method { get; set; } = HttpMethod.Get;
 
-        private readonly List<Parameter> parameters = new List<Parameter>();
-        private string url = string.Empty;
-
         public void SetHeader(string header, string value)
         {
             this.Headers[header] = value;
@@ -106,6 +105,30 @@ namespace FluidHttp.Request
         {
             this.parameters.Add(new Parameter(
                 parameterName, value, type));
+        }
+
+        private List<Parameter> ParseQueryString(string queryString)
+        {
+            List<Parameter> result = new List<Parameter>();
+
+            foreach (string keyValuePair in queryString.Split('&'))
+            {
+                string name;
+                string value = string.Empty;
+
+                string[] pair = keyValuePair.Split('=');
+
+                name = pair[0];
+
+                if (pair.Length == 2)
+                {
+                    value = Uri.UnescapeDataString(pair[1]);
+                }
+
+                result.Add(new Parameter(name, value));
+            }
+
+            return result;
         }
     }
 }
