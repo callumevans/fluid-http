@@ -113,10 +113,8 @@ namespace FluidHttp.Client
             // Execute request
             HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
 
-            var response = new FluidResponse();
-
-            response.Content = await httpResponse.Content
-                .ReadAsStringAsync()
+            var response = await new FluidResponse()
+                .FromHttpResponseMessage(httpResponse)
                 .ConfigureAwait(false);
 
             return response;

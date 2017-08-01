@@ -2,27 +2,36 @@
 using FluidHttp.Exceptions;
 using FluidHttp.Request;
 using FluidHttp.Response;
-using FluidHttp.Tests.Abstractions;
+using FluidHttp.Tests.Mocks;
 using Moq;
 using Moq.Protected;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace FluidHttp.Tests.Client
+namespace FluidHttp.Tests
 {
-    public class FluidClientTests
+    public class FetchTests
     {
         private readonly Mock<FakeHttpMessageHandler> messageHandler
             = new Mock<FakeHttpMessageHandler>() { CallBase = true };
 
         private readonly FluidClient client;
 
-        public FluidClientTests()
+        const string contentResponse = "response content!";
+        const string url = "http://localhost.com";
+
+        HttpResponseMessage message = new HttpResponseMessage
+        {
+            Content = new StringContent(contentResponse)
+        };
+
+        public FetchTests()
         {
             messageHandler
                 .Protected()
@@ -33,14 +42,6 @@ namespace FluidHttp.Tests.Client
 
             client = new FluidClient(testClient);
         }
-
-        const string contentResponse = "response content!";
-        const string url = "http://localhost.com";
-
-        HttpResponseMessage message = new HttpResponseMessage
-        {
-            Content = new StringContent(contentResponse)
-        };
 
         (string methodString, HttpMethod methodModel)[] methodsArray = new(string, HttpMethod)[]
         {
@@ -88,6 +89,35 @@ namespace FluidHttp.Tests.Client
 
             // Assert
             Assert.Equal(contentResponse, response.Content);
+        }
+
+        [Theory]
+        [InlineData("text/html")]
+        [InlineData("application/json")]
+        [InlineData("multipart/form-data")]
+        public async Task Fetch_PlacesHeadersFromResponseInResult(string responseType)
+        {
+            // Arrange
+            message.Content.Headers.ContentType = new MediaTypeHeaderValue(responseType);
+
+            // Act
+            FluidResponse response = await client.FetchAsync(url);
+
+            // Assert
+            Assert.Equal(responseType, response.Headers["Content-Type"]);
+        }
+        
+        [Fact]
+        public async Task Fetch_MultipleValuesForHeader_ReturnsCsvInFluidResponse()
+        {
+            // Arrange
+            message.Content.Headers.Add("Test-Header", new string[] { "value1", "value2" });
+
+            // Act
+            FluidResponse response = await client.FetchAsync(url);
+
+            // Assert
+            Assert.Equal("value1,value2", response.Headers["Test-Header"]);
         }
 
         [Fact]

@@ -1,8 +1,7 @@
-﻿using FluidHttp.Exceptions;
-using FluidHttp.Request;
+﻿using FluidHttp.Request;
 using Xunit;
 
-namespace FluidHttp.Tests.Request
+namespace FluidHttp.Tests
 {
     public class FluidRequestTests
     {

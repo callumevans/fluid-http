@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FluidHttp.Tests.Abstractions
+namespace FluidHttp.Tests.Mocks
 {
     public class FakeHttpMessageHandler : HttpMessageHandler
     {
