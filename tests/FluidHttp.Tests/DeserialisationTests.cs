@@ -1,4 +1,6 @@
-﻿using FluidHttp.Response;
+﻿using FluidHttp.Extensions;
+using FluidHttp.Response;
+using FluidHttp.Serialiser;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
@@ -143,6 +145,28 @@ namespace FluidHttp.Tests
 
             // Assert
             Assert.Null(output);
+        }
+
+        [Fact]
+        public void ReturnsContentWithWrongMimeType_ManualStrategy_DeserialiseSuccessfully()
+        {
+            // Arrange
+            FluidResponse response = new FluidResponse
+            {
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/xml" }
+                },
+                Content = jsonContent
+            };
+
+            // Act
+            Person person = response.ParseResponse<Person>(new JsonSerialisationStrategy());
+
+            // Assert
+            Assert.Equal(name, person.Name);
+            Assert.Equal(age, person.Age);
+            Assert.True(person.Truthy);
         }
 
         public class Person

@@ -1,4 +1,5 @@
 ﻿using FluidHttp.Exceptions;
+using FluidHttp.Extensions;
 using FluidHttp.Request;
 using FluidHttp.Response;
 using System;
