@@ -1,5 +1,5 @@
 ﻿using FluidHttp.Response;
-using FluidHttp.Serialiser;
+using FluidHttp.Serializers;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -10,10 +10,10 @@ namespace FluidHttp.Extensions
     {
         public static T ParseResponse<T>(this FluidResponse response)
         {
-            return ParseResponse<T>(response, new SerialisationManager());
+            return ParseResponse<T>(response, new SerializationManager());
         }
 
-        public static T ParseResponse<T>(this FluidResponse response, SerialisationManager serialisationManager)
+        public static T ParseResponse<T>(this FluidResponse response, SerializationManager serialisationManager)
         {
             if (response.Headers.ContainsKey(RequestHeaders.ContentType) == false)
                 return default(T);
@@ -22,7 +22,7 @@ namespace FluidHttp.Extensions
                 response.Headers[RequestHeaders.ContentType], response.Content);
         }
 
-        public static T ParseResponse<T>(this FluidResponse response, IDeserialiserStrategy serialiser)
+        public static T ParseResponse<T>(this FluidResponse response, IDeserializerStrategy serialiser)
         {
             return serialiser.Deserialise<T>(response.Content);
         }

@@ -1,6 +1,6 @@
 ﻿using FluidHttp.Extensions;
 using FluidHttp.Response;
-using FluidHttp.Serialiser;
+using FluidHttp.Serializers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
@@ -161,7 +161,7 @@ namespace FluidHttp.Tests
             };
 
             // Act
-            Person person = response.ParseResponse<Person>(new JsonSerialisationStrategy());
+            Person person = response.ParseResponse<Person>(new JsonSerializationStrategy());
 
             // Assert
             Assert.Equal(name, person.Name);

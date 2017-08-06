@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Xml.Serialization;
 
-namespace FluidHttp.Serialiser
+namespace FluidHttp.Serializers
 {
-    public class XmlSerialisationStrategy : IDeserialiserStrategy
+    public class XmlSerializationStrategy : IDeserializerStrategy
     {
         public T Deserialise<T>(string content)
         {

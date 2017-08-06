@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace FluidHttp.Serialiser
+namespace FluidHttp.Serializers
 {
-    public class JsonSerialisationStrategy : IDeserialiserStrategy
+    public class JsonSerializationStrategy : IDeserializerStrategy
     {
         public T Deserialise<T>(string content)
         {
