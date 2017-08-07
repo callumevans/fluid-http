@@ -32,14 +32,23 @@ namespace FluidHttp.Client
             }
         }
 
+        private string baseUrl;
+
+        private readonly Dictionary<string, string> defaultHeaders;
+
         private readonly HttpClient httpClient;
 
-        private string baseUrl;
         private bool baseUrlSet;
 
         public FluidClient(HttpClient httpClient)
         {
             this.httpClient = httpClient;
+            this.defaultHeaders = new Dictionary<string, string>();
+        }
+
+        public void SetDefaultHeader(string name, string value)
+        {
+            defaultHeaders.Add(name, value);
         }
 
         public async Task<FluidResponse> FetchAsync(FluidRequest request)
@@ -70,6 +79,13 @@ namespace FluidHttp.Client
 
                 if (Uri.IsWellFormedUriString(requestUrl, UriKind.Absolute) == false)
                     throw new BadAbsoluteUriException();
+            }
+
+            // Append any default headers
+            foreach (var header in defaultHeaders)
+            {
+                if (request.Headers.ContainsKey(header.Key) == false)
+                    request.Headers.Add(header.Key, header.Value);
             }
 
             // Build up query string for request url

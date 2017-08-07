@@ -3,11 +3,11 @@ using Xunit;
 
 namespace FluidHttp.Tests
 {
-    public class FluidRequestTests
+    public class RequestTests
     {
         private readonly FluidRequest request;
 
-        public FluidRequestTests()
+        public RequestTests()
         {
             request = new FluidRequest();
         }
