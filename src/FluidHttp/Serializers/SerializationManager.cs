@@ -11,11 +11,11 @@ namespace FluidHttp.Serializers
         private const string jsonContentMatcher = "*/json*";
         private const string xmlContentMatcher = "*/xml*";
 
-        private readonly ConcurrentDictionary<string, Lazy<IDeserializerStrategy>> serializers;
+        private readonly ConcurrentDictionary<Regex, Lazy<IDeserializerStrategy>> serializers;
 
         public SerializationManager()
         {
-            serializers = new ConcurrentDictionary<string, Lazy<IDeserializerStrategy>>();
+            serializers = new ConcurrentDictionary<Regex, Lazy<IDeserializerStrategy>>();
 
             // Default serialisers
             SetSerializer<JsonSerializationStrategy>(jsonContentMatcher);
@@ -24,7 +24,7 @@ namespace FluidHttp.Serializers
 
         public SerializationManager(IDictionary<string, IDeserializerStrategy> strategies)
         {
-            serializers = new ConcurrentDictionary<string, Lazy<IDeserializerStrategy>>();
+            serializers = new ConcurrentDictionary<Regex, Lazy<IDeserializerStrategy>>();
 
             // Configure serializers
             foreach (var strategy in strategies)
@@ -35,14 +35,14 @@ namespace FluidHttp.Serializers
 
         public void SetSerializer(string contentType, IDeserializerStrategy serializer)
         {
-            serializers.TryAdd(contentType, new Lazy<IDeserializerStrategy>(
+            serializers.TryAdd(BuildGlobber(contentType), new Lazy<IDeserializerStrategy>(
                 () => serializer));
         }
 
         public void SetSerializer<T>(string contentType)
             where T : IDeserializerStrategy, new()
         {
-            serializers.TryAdd(contentType, new Lazy<IDeserializerStrategy>(
+            serializers.TryAdd(BuildGlobber(contentType), new Lazy<IDeserializerStrategy>(
                 () => new T()));
         }
 
@@ -52,7 +52,7 @@ namespace FluidHttp.Serializers
                 return default(T);
 
             Lazy<IDeserializerStrategy> serializerDictionaryEntry = serializers
-                .Where(x => BuildGlobber(x.Key).IsMatch(contentType))
+                .Where(x => x.Key.IsMatch(contentType))
                 .SingleOrDefault().Value;
 
             if (serializerDictionaryEntry == null)
@@ -61,14 +61,14 @@ namespace FluidHttp.Serializers
             IDeserializerStrategy strategy = serializerDictionaryEntry.Value;
 
             return strategy.Deserialise<T>(content);
+        }
 
-            Regex BuildGlobber(string pattern)
-            {
-                return new Regex(
-                    Regex.Escape(pattern)
-                    .Replace(@"\*", ".*")
-                    .Replace(@"\?", "."));
-            }
+        private Regex BuildGlobber(string pattern)
+        {
+            return new Regex(
+                Regex.Escape(pattern)
+                .Replace(@"\*", ".*")
+                .Replace(@"\?", "."));
         }
     }
 }
