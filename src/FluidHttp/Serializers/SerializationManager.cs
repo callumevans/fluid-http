@@ -29,9 +29,14 @@ namespace FluidHttp.Serializers
             // Configure serializers
             foreach (var strategy in strategies)
             {
-                serializers.TryAdd(strategy.Key, new Lazy<IDeserializerStrategy>(
-                    () => strategy.Value));
+                SetSerializer(strategy.Key, strategy.Value);
             }
+        }
+
+        public void SetSerializer(string contentType, IDeserializerStrategy serializer)
+        {
+            serializers.TryAdd(contentType, new Lazy<IDeserializerStrategy>(
+                () => serializer));
         }
 
         public void SetSerializer<T>(string contentType)
