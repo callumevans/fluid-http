@@ -18,13 +18,18 @@ namespace FluidHttp.Extensions
             if (response.Headers.ContainsKey(RequestHeaders.ContentType) == false)
                 return default(T);
 
-            return serialisationManager.Deserialise<T>(
+            return serialisationManager.Deserialize<T>(
                 response.Headers[RequestHeaders.ContentType], response.Content);
         }
 
         public static T ParseResponse<T>(this FluidResponse response, IDeserializerStrategy serialiser)
         {
             return serialiser.Deserialise<T>(response.Content);
+        }
+
+        public static T ParseResponse<T>(this SerializationManager manager, FluidResponse response)
+        {
+            return manager.Deserialize<T>(response.Headers[RequestHeaders.ContentType], response.Content);
         }
 
         public async static Task<FluidResponse> FromHttpResponseMessage(

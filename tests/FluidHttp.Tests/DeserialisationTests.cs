@@ -169,6 +169,133 @@ namespace FluidHttp.Tests
             Assert.True(person.Truthy);
         }
 
+        [Fact]
+        public void DeserializeWithSerializationManagerExtension()
+        {
+            // Arrange
+            SerializationManager manager = new SerializationManager();
+
+            FluidResponse response = new FluidResponse
+            {
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json" }
+                },
+                Content = jsonContent
+            };
+
+            // Act
+            Person person = manager.ParseResponse<Person>(response);
+
+            // Assert
+            Assert.Equal(name, person.Name);
+            Assert.Equal(age, person.Age);
+            Assert.True(person.Truthy);
+        }
+
+        [Theory]
+        [InlineData("application/json", "*/json")]
+        [InlineData("application/json", "*json*")]
+        [InlineData("application/json, content-length 1000", "application/json*")]
+        [InlineData("text/json", "*/json")]
+        [InlineData("text/json", "*json*")]
+        [InlineData("text/json, content-length 1000", "text/json*")]
+        public void Deserialize_FuzzyJsonHeaders_SuccessfullyDeserialize(string contentType, string fuzzyMatcher)
+        {
+            // Arrange
+            SerializationManager manager = new SerializationManager(
+                new Dictionary<string, IDeserializerStrategy>());
+
+            manager.SetSerializer<JsonSerializationStrategy>(fuzzyMatcher);
+
+            FluidResponse response = new FluidResponse
+            {
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", contentType }
+                },
+                Content = jsonContent
+            };
+
+            // Act
+            Person person = manager.ParseResponse<Person>(response);
+
+            // Assert
+            Assert.Equal(name, person.Name);
+            Assert.Equal(age, person.Age);
+            Assert.True(person.Truthy);
+        }
+
+        [Theory]
+        [InlineData("application/xml", "*/xml")]
+        [InlineData("application/xml", "*xml*")]
+        [InlineData("application/xml, content-length 1000", "application/xml*")]
+        [InlineData("text/xml", "*/xml")]
+        [InlineData("text/xml", "*xml*")]
+        [InlineData("text/xml, content-length 1000", "text/xml*")]
+        public void Deserialize_FuzzyXmlHeaders_SuccessfullyDeserialize(string contentType, string fuzzyMatcher)
+        {
+            // Arrange
+            SerializationManager manager = new SerializationManager(
+                new Dictionary<string, IDeserializerStrategy>());
+
+            manager.SetSerializer<XmlSerializationStrategy>(fuzzyMatcher);
+
+            FluidResponse response = new FluidResponse
+            {
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", contentType }
+                },
+                Content = xmlContent
+            };
+
+            // Act
+            Person person = manager.ParseResponse<Person>(response);
+
+            // Assert
+            Assert.Equal(name, person.Name);
+            Assert.Equal(age, person.Age);
+            Assert.True(person.Truthy);
+        }
+
+        [Theory]
+        [InlineData("application/json", "*/json", true)]
+        [InlineData("application/json", "*json*", true)]
+        [InlineData("application/json, content-length 1000", "application/json*", true)]
+        [InlineData("text/json", "*/json", true)]
+        [InlineData("text/json", "*json*", true)]
+        [InlineData("text/json, content-length 1000", "text/json*", true)]
+        [InlineData("application/xml", "*/xml", false)]
+        [InlineData("application/xml", "*xml*", false)]
+        [InlineData("application/xml, content-length 1000", "application/xml*", false)]
+        [InlineData("text/xml", "*/xml", false)]
+        [InlineData("text/xml", "*xml*", false)]
+        [InlineData("text/xml, content-length 1000", "text/xml*", false)]
+        public void Deserialize_FuzzyXmlAndJsonHeaders_SuccessfullyDeserializeWithoutConfiguration(
+            string contentType, string fuzzyMatcher, bool isJson)
+        {
+            // Arrange
+            SerializationManager manager = new SerializationManager();
+
+            FluidResponse response = new FluidResponse
+            {
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", contentType }
+                },
+                Content = isJson ? jsonContent : xmlContent
+            };
+
+            // Act
+            Person person = manager.ParseResponse<Person>(response);
+
+            // Assert
+            Assert.Equal(name, person.Name);
+            Assert.Equal(age, person.Age);
+            Assert.True(person.Truthy);
+        }
+
         public class Person
         {
             public string Name { get; set; }
