@@ -8,23 +8,30 @@ namespace FluidHttp.Serializers
 {
     public class SerializationManager
     {
+        public static SerializationManager Serializer { get; }
+
         private const string jsonContentMatcher = "*/json*";
         private const string xmlContentMatcher = "*/xml*";
 
-        private readonly ConcurrentDictionary<Regex, Lazy<IDeserializerStrategy>> serializers;
+        private readonly ConcurrentDictionary<Regex, Lazy<ISerializerStrategy>> serializers;
+
+        static SerializationManager()
+        {
+            Serializer = new SerializationManager();
+        }
 
         public SerializationManager()
         {
-            serializers = new ConcurrentDictionary<Regex, Lazy<IDeserializerStrategy>>();
+            serializers = new ConcurrentDictionary<Regex, Lazy<ISerializerStrategy>>();
 
             // Default serialisers
             SetSerializer<JsonSerializationStrategy>(jsonContentMatcher);
             SetSerializer<XmlSerializationStrategy>(xmlContentMatcher);
         }
 
-        public SerializationManager(IDictionary<string, IDeserializerStrategy> strategies)
+        public SerializationManager(IDictionary<string, ISerializerStrategy> strategies)
         {
-            serializers = new ConcurrentDictionary<Regex, Lazy<IDeserializerStrategy>>();
+            serializers = new ConcurrentDictionary<Regex, Lazy<ISerializerStrategy>>();
 
             // Configure serializers
             foreach (var strategy in strategies)
@@ -33,16 +40,16 @@ namespace FluidHttp.Serializers
             }
         }
 
-        public void SetSerializer(string contentType, IDeserializerStrategy serializer)
+        public void SetSerializer(string contentType, ISerializerStrategy serializer)
         {
-            serializers.TryAdd(BuildGlobber(contentType), new Lazy<IDeserializerStrategy>(
+            serializers.TryAdd(BuildGlobber(contentType), new Lazy<ISerializerStrategy>(
                 () => serializer));
         }
 
         public void SetSerializer<T>(string contentType)
-            where T : IDeserializerStrategy, new()
+            where T : ISerializerStrategy, new()
         {
-            serializers.TryAdd(BuildGlobber(contentType), new Lazy<IDeserializerStrategy>(
+            serializers.TryAdd(BuildGlobber(contentType), new Lazy<ISerializerStrategy>(
                 () => new T()));
         }
 
@@ -51,16 +58,31 @@ namespace FluidHttp.Serializers
             if (string.IsNullOrWhiteSpace(contentType) || string.IsNullOrWhiteSpace(content))
                 return default(T);
 
-            Lazy<IDeserializerStrategy> serializerDictionaryEntry = serializers
+            ISerializerStrategy strategy = GetStrategyForContentType(contentType);
+
+            if (strategy == null)
+                return default(T);
+
+            return strategy.Deserialize<T>(content);
+        }
+
+        public ISerializerStrategy GetStrategyForContentType(string contentType)
+        {
+            if (string.IsNullOrWhiteSpace(contentType))
+                throw new ArgumentException("Content type cannot be null or empty", contentType);
+
+            Lazy<ISerializerStrategy> serializerDictionaryEntry = serializers
                 .Where(x => x.Key.IsMatch(contentType))
                 .SingleOrDefault().Value;
 
             if (serializerDictionaryEntry == null)
-                return default(T);
-
-            IDeserializerStrategy strategy = serializerDictionaryEntry.Value;
-
-            return strategy.Deserialise<T>(content);
+            {
+                return null;
+            }
+            else
+            {
+                return serializerDictionaryEntry.Value;
+            }
         }
 
         private Regex BuildGlobber(string pattern)

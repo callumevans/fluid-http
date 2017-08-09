@@ -204,7 +204,7 @@ namespace FluidHttp.Tests
         {
             // Arrange
             SerializationManager manager = new SerializationManager(
-                new Dictionary<string, IDeserializerStrategy>());
+                new Dictionary<string, ISerializerStrategy>());
 
             manager.SetSerializer<JsonSerializationStrategy>(fuzzyMatcher);
 
@@ -237,7 +237,7 @@ namespace FluidHttp.Tests
         {
             // Arrange
             SerializationManager manager = new SerializationManager(
-                new Dictionary<string, IDeserializerStrategy>());
+                new Dictionary<string, ISerializerStrategy>());
 
             manager.SetSerializer<XmlSerializationStrategy>(fuzzyMatcher);
 

@@ -3,18 +3,18 @@ using System.Xml.Serialization;
 
 namespace FluidHttp.Serializers
 {
-    public class XmlSerializationStrategy : IDeserializerStrategy
+    public class XmlSerializationStrategy : ISerializerStrategy
     {
-        public T Deserialise<T>(string content)
+        public T Deserialize<T>(string input)
         {
-            var reader = new StringReader(content);
-            var serialiser = new XmlSerializer(typeof(T));
+            var reader = new StringReader(input);
+            var serializer = new XmlSerializer(typeof(T));
 
             T output;
 
             try
             {
-                output = (T)serialiser.Deserialize(reader);
+                output = (T)serializer.Deserialize(reader);
             }
             catch
             {
@@ -26,6 +26,11 @@ namespace FluidHttp.Serializers
             }
 
             return output;
+        }
+
+        public string Serialize(object input)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

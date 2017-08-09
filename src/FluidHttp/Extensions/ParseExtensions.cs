@@ -22,9 +22,9 @@ namespace FluidHttp.Extensions
                 response.Headers[RequestHeaders.ContentType], response.Content);
         }
 
-        public static T ParseResponse<T>(this FluidResponse response, IDeserializerStrategy serialiser)
+        public static T ParseResponse<T>(this FluidResponse response, ISerializerStrategy serialiser)
         {
-            return serialiser.Deserialise<T>(response.Content);
+            return serialiser.Deserialize<T>(response.Content);
         }
 
         public static T ParseResponse<T>(this SerializationManager manager, FluidResponse response)

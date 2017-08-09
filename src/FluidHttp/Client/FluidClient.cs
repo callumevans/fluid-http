@@ -104,13 +104,20 @@ namespace FluidHttp.Client
             // Build body query sting
             string bodyContent = string.Empty;
 
-            List<Parameter> bodyQueryStringParameters = request.Parameters
-                .Where(x => x.Type == ParameterType.Body)
-                .ToList();
-
-            if (bodyQueryStringParameters.Any())
+            if (string.IsNullOrWhiteSpace(request.Body))
             {
-                bodyContent = BuildQueryString(bodyQueryStringParameters);
+                List<Parameter> bodyQueryStringParameters = request.Parameters
+                    .Where(x => x.Type == ParameterType.Body)
+                    .ToList();
+
+                if (bodyQueryStringParameters.Any())
+                {
+                    bodyContent = BuildQueryString(bodyQueryStringParameters);
+                }
+            }
+            else
+            {
+                bodyContent = request.Body;
             }
 
             // Set content type

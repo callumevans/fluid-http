@@ -2,7 +2,7 @@
 {
     public enum ParameterType
     {
-        Query = 0,
-        Body = 1
+        Query = 1,
+        Body = 2
     }
 }

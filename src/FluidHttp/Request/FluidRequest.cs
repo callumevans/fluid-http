@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluidHttp.Serializers;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 
@@ -18,8 +19,6 @@ namespace FluidHttp.Request
                 return parameters;
             }
         }
-
-        private string url = string.Empty;
 
         public string Url
         {
@@ -60,6 +59,8 @@ namespace FluidHttp.Request
             }
         }
 
+        private string url = string.Empty;
+
         public string ContentType
         {
             set
@@ -78,6 +79,8 @@ namespace FluidHttp.Request
                 }
             }
         }
+
+        public string Body { get; set; } = string.Empty;
 
         public HttpMethod Method { get; set; } = HttpMethod.Get;
 
@@ -105,6 +108,15 @@ namespace FluidHttp.Request
         {
             this.parameters.Add(new Parameter(
                 parameterName, value, type));
+        }
+
+        public void SetJsonBody(object content)
+        {
+            Body = SerializationManager.Serializer
+                .GetStrategyForContentType(MimeTypes.ApplicationJson)
+                .Serialize(content);
+
+            SetHeader(RequestHeaders.ContentType, MimeTypes.ApplicationJson);
         }
 
         private List<Parameter> ParseQueryString(string queryString)
