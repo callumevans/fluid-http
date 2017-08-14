@@ -58,7 +58,7 @@ namespace FluidHttp.Serializers
             if (string.IsNullOrWhiteSpace(contentType) || string.IsNullOrWhiteSpace(content))
                 return default(T);
 
-            ISerializerStrategy strategy = GetStrategyForContentType(contentType);
+            IDeserializer strategy = GetStrategyForContentType(contentType);
 
             if (strategy == null)
                 return default(T);
@@ -66,7 +66,14 @@ namespace FluidHttp.Serializers
             return strategy.Deserialize<T>(content);
         }
 
-        public ISerializerStrategy GetStrategyForContentType(string contentType)
+        public string Serialize(string contentType, object content)
+        {
+            ISerializer strategy = GetStrategyForContentType(contentType);
+
+            return strategy.Serialize(content);
+        }
+
+        private ISerializerStrategy GetStrategyForContentType(string contentType)
         {
             if (string.IsNullOrWhiteSpace(contentType))
                 throw new ArgumentException("Content type cannot be null or empty", contentType);

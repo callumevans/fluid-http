@@ -113,10 +113,17 @@ namespace FluidHttp.Request
         public void SetJsonBody(object content)
         {
             Body = SerializationManager.Serializer
-                .GetStrategyForContentType(MimeTypes.ApplicationJson)
-                .Serialize(content);
+                .Serialize(MimeTypes.ApplicationJson, content);
 
             SetHeader(RequestHeaders.ContentType, MimeTypes.ApplicationJson);
+        }
+
+        public void SetXmlBody(object content)
+        {
+            Body = SerializationManager.Serializer
+                .Serialize(MimeTypes.ApplicationXml, content);
+
+            SetHeader(RequestHeaders.ContentType, MimeTypes.ApplicationXml);
         }
 
         private List<Parameter> ParseQueryString(string queryString)

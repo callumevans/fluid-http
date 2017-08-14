@@ -1,9 +1,6 @@
 ﻿namespace FluidHttp.Serializers
 {
-    public interface ISerializerStrategy
+    public interface ISerializerStrategy : ISerializer, IDeserializer
     {
-        T Deserialize<T>(string input);
-
-        string Serialize(object input);
     }
 }
