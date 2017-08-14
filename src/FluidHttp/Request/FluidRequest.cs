@@ -84,6 +84,15 @@ namespace FluidHttp.Request
 
         public HttpMethod Method { get; set; } = HttpMethod.Get;
 
+        public FluidRequest()
+        {
+        }
+
+        public FluidRequest(string url)
+        {
+            this.Url = url;
+        }
+
         public void SetHeader(string header, string value)
         {
             this.Headers[header] = value;

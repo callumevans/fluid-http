@@ -5,17 +5,25 @@ namespace FluidHttp.Tests
 {
     public class RequestTests
     {
-        private readonly FluidRequest request;
-
-        public RequestTests()
+        [Fact]
+        public void InitialiseUrlInConstructor()
         {
-            request = new FluidRequest();
+            // Arrange
+            string url = "http://www.localhost.com/";
+
+            // Act
+            FluidRequest request = new FluidRequest(url);
+
+            // Assert
+            Assert.Equal(url, request.Url);
         }
 
         [Fact]
         public void SetHeader_OverwritesExistingHeader()
         {
             // Arrange
+            FluidRequest request = new FluidRequest();
+
             request.SetHeader("HeaderKey", "HeaderValue");
 
             // Act
@@ -29,6 +37,8 @@ namespace FluidHttp.Tests
         public void SetHeader_AddIfHeaderDoesntExist()
         {
             // Act
+            FluidRequest request = new FluidRequest();
+
             request.SetHeader("HeaderKey", "HeaderValue");
 
             // Assert

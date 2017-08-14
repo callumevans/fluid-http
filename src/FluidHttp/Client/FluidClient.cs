@@ -40,9 +40,25 @@ namespace FluidHttp.Client
 
         private bool baseUrlSet;
 
+        public FluidClient()
+            : this(new HttpClient())
+        {
+        }
+
+        public FluidClient(string url)
+            : this(new HttpClient(), url)
+        {
+        }
+
         public FluidClient(HttpClient httpClient)
+            : this(httpClient, string.Empty)
+        {
+        }
+
+        public FluidClient(HttpClient httpClient, string url)
         {
             this.httpClient = httpClient;
+            this.BaseUrl = url;
             this.defaultHeaders = new Dictionary<string, string>();
         }
 
