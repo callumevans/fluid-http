@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FluidHttp
 {
-    public class FluidClient
+    public class FluidClient : IDisposable
     {
         public string BaseUrl
         {
@@ -32,11 +32,9 @@ namespace FluidHttp
 
         private string baseUrl;
 
+        protected bool baseUrlSet;
         private readonly ConcurrentDictionary<string, string> defaultHeaders;
-
         private readonly HttpClient httpClient;
-
-        private bool baseUrlSet;
 
         public FluidClient()
             : this(new HttpClient())
@@ -236,5 +234,35 @@ namespace FluidHttp
 
             return parameterString.ToString();
         }
+
+        #region IDisposable
+
+        protected bool disposedValue;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    httpClient.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~FluidClient()
+        {
+            Dispose(false);
+        }
+
+        #endregion
     }
 }
