@@ -30,20 +30,5 @@ namespace FluidHttp
         {
             return manager.Deserialize<T>(response.Headers[RequestHeaders.ContentType], response.Content);
         }
-
-        public async static Task<FluidResponse> FromHttpResponseMessage(
-            this FluidResponse response, HttpResponseMessage message)
-        {
-            response.Content = await message.Content
-                .ReadAsStringAsync()
-                .ConfigureAwait(false);
-
-            foreach (var header in message.Headers.Concat(message.Content.Headers))
-            {
-                response.Headers.Add(header.Key, string.Join(",", header.Value));
-            }
-
-            return response;
-        }
     }
 }

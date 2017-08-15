@@ -5,6 +5,7 @@ using Moq.Protected;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -25,7 +26,7 @@ namespace FluidHttp.Tests
 
         HttpResponseMessage message = new HttpResponseMessage
         {
-            Content = new StringContent(contentResponse)
+            Content = new StringContent(contentResponse),
         };
 
         public FetchTests()
@@ -722,6 +723,24 @@ namespace FluidHttp.Tests
                     ItExpr.Is<HttpRequestMessage>(i =>
                         i.Content.Headers.ContentType.MediaType == type),
                     ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.OK)]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [InlineData(HttpStatusCode.Unauthorized)]
+        public async Task Fetch_ReturnStatusCodeWithResponse(HttpStatusCode statusCode)
+        {
+            // Arrange
+            client.BaseUrl = url;
+            message.StatusCode = statusCode;
+
+            // Act
+            FluidResponse response = await client.FetchAsync();
+
+            // Assert
+            Assert.Equal(statusCode, response.StatusCode);
         }
     }
 }

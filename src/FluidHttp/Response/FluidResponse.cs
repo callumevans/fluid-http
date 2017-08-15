@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 
 namespace FluidHttp
 {
@@ -8,5 +9,7 @@ namespace FluidHttp
             = new Dictionary<string, string>();
 
         public string Content { get; set; }
+
+        public HttpStatusCode StatusCode { get; internal set; }
     }
 }
