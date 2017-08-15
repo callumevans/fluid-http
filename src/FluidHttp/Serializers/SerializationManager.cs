@@ -1,10 +1,11 @@
-﻿using System;
+﻿using FluidHttp.Serializers;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace FluidHttp.Serializers
+namespace FluidHttp
 {
     public class SerializationManager
     {

@@ -1,10 +1,9 @@
-﻿using FluidHttp.Response;
-using FluidHttp.Serializers;
+﻿using FluidHttp.Serializers;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace FluidHttp.Extensions
+namespace FluidHttp
 {
     public static class ParseExtensions
     {

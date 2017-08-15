@@ -1,7 +1,4 @@
 ﻿using FluidHttp.Exceptions;
-using FluidHttp.Extensions;
-using FluidHttp.Request;
-using FluidHttp.Response;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluidHttp.Client
+namespace FluidHttp
 {
     public class FluidClient
     {

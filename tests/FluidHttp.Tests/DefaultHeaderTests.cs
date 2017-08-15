@@ -1,6 +1,4 @@
-﻿using FluidHttp.Client;
-using FluidHttp.Request;
-using FluidHttp.Tests.Mocks;
+﻿using FluidHttp.Tests.Mocks;
 using Moq;
 using Moq.Protected;
 using System.Linq;

@@ -1,6 +1,4 @@
-﻿using FluidHttp.Extensions;
-using FluidHttp.Response;
-using FluidHttp.Serializers;
+﻿using FluidHttp.Serializers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;

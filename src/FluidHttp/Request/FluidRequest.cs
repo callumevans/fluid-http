@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 
-namespace FluidHttp.Request
+namespace FluidHttp
 {
     public class FluidRequest
     {

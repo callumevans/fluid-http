@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace FluidHttp.Response
+namespace FluidHttp
 {
     public class FluidResponse
     {

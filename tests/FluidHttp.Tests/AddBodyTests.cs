@@ -1,7 +1,4 @@
-﻿using FluidHttp.Client;
-using FluidHttp.Request;
-using FluidHttp.Serializers;
-using FluidHttp.Tests.Mocks;
+﻿using FluidHttp.Tests.Mocks;
 using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;

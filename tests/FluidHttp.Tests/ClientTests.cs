@@ -1,5 +1,4 @@
-﻿using FluidHttp.Client;
-using Xunit;
+﻿using Xunit;
 
 namespace FluidHttp.Tests
 {
