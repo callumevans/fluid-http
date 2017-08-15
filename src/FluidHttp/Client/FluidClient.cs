@@ -1,5 +1,6 @@
 ﻿using FluidHttp.Exceptions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -31,7 +32,7 @@ namespace FluidHttp
 
         private string baseUrl;
 
-        private readonly Dictionary<string, string> defaultHeaders;
+        private readonly ConcurrentDictionary<string, string> defaultHeaders;
 
         private readonly HttpClient httpClient;
 
@@ -56,12 +57,20 @@ namespace FluidHttp
         {
             this.httpClient = httpClient;
             this.BaseUrl = url;
-            this.defaultHeaders = new Dictionary<string, string>();
+            this.defaultHeaders = new ConcurrentDictionary<string, string>();
         }
 
         public void SetDefaultHeader(string name, string value)
         {
-            defaultHeaders.Add(name, value);
+            defaultHeaders.TryAdd(name, value);
+
+            // Rebuild HttpClient default headers
+            httpClient.DefaultRequestHeaders.Clear();
+
+            foreach (var header in defaultHeaders)
+            {
+                httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+            }
         }
 
         public async Task<FluidResponse> FetchAsync(FluidRequest request)
@@ -98,7 +107,7 @@ namespace FluidHttp
             foreach (var header in defaultHeaders)
             {
                 if (request.Headers.ContainsKey(header.Key) == false)
-                    request.Headers.Add(header.Key, header.Value);
+                    request.SetHeader(header.Key, header.Value);
             }
 
             // Build up query string for request url
@@ -139,7 +148,7 @@ namespace FluidHttp
 
             httpRequest.Content = new StringContent(bodyContent, Encoding.UTF8, contentTypeValue ?? MimeTypes.ApplicationFormEncoded);
 
-            request.Headers.Remove(RequestHeaders.ContentType);
+            request.RemoveHeader(RequestHeaders.ContentType);
 
             // Build headers
             foreach (var header in request.Headers)

@@ -1,24 +1,17 @@
-﻿using FluidHttp.Serializers;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Net.Http;
 
 namespace FluidHttp
 {
     public class FluidRequest
     {
-        public Dictionary<string, string> Headers { get; private set; }
-            = new Dictionary<string, string>();
+        private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
+        private readonly List<Parameter> parameters = new List<Parameter>();
 
-        private List<Parameter> parameters = new List<Parameter>();
-
-        public List<Parameter> Parameters
-        {
-            get
-            {
-                return parameters;
-            }
-        }
+        public IReadOnlyDictionary<string, string> Headers => new ReadOnlyDictionary<string, string>(this.headers);
+        public IReadOnlyCollection<Parameter> Parameters => new List<Parameter>(this.parameters);
 
         public string Url
         {
@@ -47,7 +40,10 @@ namespace FluidHttp
                     {
                         if (Uri.IsWellFormedUriString(queryString, UriKind.Relative))
                         {
-                            parameters = ParseQueryString(queryString);
+                            List<Parameter> queryStringParameters = ParseQueryString(queryString);
+
+                            parameters.Clear();
+                            parameters.AddRange(queryStringParameters);
 
                             // Remove query string from url
                             newUrl = newUrl.Substring(0, newUrl.IndexOf('?'));
@@ -95,12 +91,12 @@ namespace FluidHttp
 
         public void SetHeader(string header, string value)
         {
-            this.Headers[header] = value;
+            this.headers[header] = value;
         }
 
         public void RemoveHeader(string header)
         {
-            this.Headers.Remove(header);
+            this.headers.Remove(header);
         }
 
         public void AddQueryParameter(string parameterName, object value)
@@ -113,10 +109,19 @@ namespace FluidHttp
             AddParameter(parameterName, value, ParameterType.Body);
         }
 
+        public void AddParameter(Parameter parameter)
+        {
+            this.parameters.Add(parameter);
+        }
+
         public void AddParameter(string parameterName, object value, ParameterType type)
         {
-            this.parameters.Add(new Parameter(
-                parameterName, value, type));
+            AddParameter(new Parameter(parameterName, value, type));
+        }
+
+        public void RemoveParameters(Predicate<Parameter> predicate)
+        {
+            this.parameters.RemoveAll(predicate);
         }
 
         public void SetJsonBody(object content)
