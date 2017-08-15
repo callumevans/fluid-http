@@ -14,6 +14,12 @@ namespace FluidHttp
         private const string jsonContentMatcher = "*/json*";
         private const string xmlContentMatcher = "*/xml*";
 
+        private static readonly Dictionary<string, Type> defaultConfigurations = new Dictionary<string, Type>
+        {
+            { jsonContentMatcher, typeof(JsonSerializationStrategy) },
+            { xmlContentMatcher, typeof(XmlSerializationStrategy) }
+        };
+
         private readonly ConcurrentDictionary<Regex, Lazy<ISerializerStrategy>> serializers;
 
         static SerializationManager()
@@ -22,36 +28,25 @@ namespace FluidHttp
         }
 
         public SerializationManager()
+            : this(defaultConfigurations)
         {
-            serializers = new ConcurrentDictionary<Regex, Lazy<ISerializerStrategy>>();
-
-            // Default serialisers
-            SetSerializer<JsonSerializationStrategy>(jsonContentMatcher);
-            SetSerializer<XmlSerializationStrategy>(xmlContentMatcher);
         }
 
-        public SerializationManager(IDictionary<string, ISerializerStrategy> strategies)
+        public SerializationManager(IDictionary<string, Type> strategies)
         {
             serializers = new ConcurrentDictionary<Regex, Lazy<ISerializerStrategy>>();
 
             // Configure serializers
             foreach (var strategy in strategies)
             {
-                SetSerializer(strategy.Key, strategy.Value);
+                SetSerializerInternal(strategy.Key, strategy.Value);
             }
-        }
-
-        public void SetSerializer(string contentType, ISerializerStrategy serializer)
-        {
-            serializers.TryAdd(BuildGlobber(contentType), new Lazy<ISerializerStrategy>(
-                () => serializer));
         }
 
         public void SetSerializer<T>(string contentType)
             where T : ISerializerStrategy, new()
         {
-            serializers.TryAdd(BuildGlobber(contentType), new Lazy<ISerializerStrategy>(
-                () => new T()));
+            SetSerializerInternal(contentType, typeof(T));
         }
 
         public T Deserialize<T>(string contentType, string content)
@@ -99,6 +94,12 @@ namespace FluidHttp
                 Regex.Escape(pattern)
                 .Replace(@"\*", ".*")
                 .Replace(@"\?", "."));
+        }
+
+        private void SetSerializerInternal(string contentType, Type serializer)
+        {
+            serializers.TryAdd(BuildGlobber(contentType), new Lazy<ISerializerStrategy>(
+                () => (ISerializerStrategy)Activator.CreateInstance(serializer)));
         }
     }
 }

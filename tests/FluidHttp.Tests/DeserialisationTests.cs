@@ -1,5 +1,6 @@
 ﻿using FluidHttp.Serializers;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
@@ -202,7 +203,7 @@ namespace FluidHttp.Tests
         {
             // Arrange
             SerializationManager manager = new SerializationManager(
-                new Dictionary<string, ISerializerStrategy>());
+                new Dictionary<string, Type>());
 
             manager.SetSerializer<JsonSerializationStrategy>(fuzzyMatcher);
 
@@ -235,7 +236,7 @@ namespace FluidHttp.Tests
         {
             // Arrange
             SerializationManager manager = new SerializationManager(
-                new Dictionary<string, ISerializerStrategy>());
+                new Dictionary<string, Type>());
 
             manager.SetSerializer<XmlSerializationStrategy>(fuzzyMatcher);
 
