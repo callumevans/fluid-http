@@ -33,29 +33,29 @@ namespace FluidHttp
         private string baseUrl;
 
         protected bool baseUrlSet;
-        private readonly ConcurrentDictionary<string, string> defaultHeaders;
+        private readonly ConcurrentDictionary<string, string> defaultHeaders = new ConcurrentDictionary<string, string>();
         private readonly HttpClient httpClient;
 
         public FluidClient()
-            : this(new HttpClient())
+            : this(string.Empty)
         {
+        }
+
+        public FluidClient(HttpMessageHandler messageHandler)
+            : this(messageHandler, string.Empty)
+        {
+        }
+
+        public FluidClient(HttpMessageHandler messageHandler, string url)
+        {
+            this.httpClient = new HttpClient(messageHandler);
+            this.BaseUrl = url;
         }
 
         public FluidClient(string url)
-            : this(new HttpClient(), url)
         {
-        }
-
-        public FluidClient(HttpClient httpClient)
-            : this(httpClient, string.Empty)
-        {
-        }
-
-        public FluidClient(HttpClient httpClient, string url)
-        {
-            this.httpClient = httpClient;
+            this.httpClient = new HttpClient();
             this.BaseUrl = url;
-            this.defaultHeaders = new ConcurrentDictionary<string, string>();
         }
 
         public void SetDefaultHeader(string name, string value)

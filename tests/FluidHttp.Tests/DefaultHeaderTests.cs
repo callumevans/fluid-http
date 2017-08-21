@@ -31,9 +31,7 @@ namespace FluidHttp.Tests
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(message));
 
-            var testClient = new HttpClient(messageHandler.Object);
-
-            client = new FluidClient(testClient);
+            client = new FluidClient(messageHandler.Object);
         }
 
         [Fact]
