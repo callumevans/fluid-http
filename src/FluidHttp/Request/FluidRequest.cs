@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Net.Http;
 
 namespace FluidHttp
@@ -10,8 +9,8 @@ namespace FluidHttp
         private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
         private readonly List<Parameter> parameters = new List<Parameter>();
 
-        public IReadOnlyDictionary<string, string> Headers => new ReadOnlyDictionary<string, string>(this.headers);
-        public IReadOnlyCollection<Parameter> Parameters => new List<Parameter>(this.parameters);
+        public IReadOnlyDictionary<string, string> Headers => new Dictionary<string, string>(this.headers);
+        public IReadOnlyList<Parameter> Parameters => new List<Parameter>(this.parameters);
 
         public string Url
         {

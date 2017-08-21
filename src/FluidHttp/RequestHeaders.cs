@@ -6,15 +6,12 @@ namespace FluidHttp
     {
         public const string ContentType = "Content-Type";
 
-        public static IList<string> ReservedHeaders => reservedHeaders.AsReadOnly();
+        public static IEnumerable<string> ReservedHeaders => new List<string>(reservedHeaders);
 
-        private static readonly List<string> reservedHeaders;
-
-        static RequestHeaders()
-        {
-            reservedHeaders = new List<string>();
-
-            reservedHeaders.Add(ContentType);
-        }
+        private static readonly IList<string> reservedHeaders =
+            new List<string>
+            {
+                ContentType
+            };
     }
 }

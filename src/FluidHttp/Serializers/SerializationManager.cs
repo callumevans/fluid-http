@@ -9,8 +9,6 @@ namespace FluidHttp
 {
     public class SerializationManager
     {
-        public static SerializationManager Serializer { get; }
-
         private const string jsonContentMatcher = "*/json*";
         private const string xmlContentMatcher = "*/xml*";
 
@@ -20,12 +18,9 @@ namespace FluidHttp
             { xmlContentMatcher, typeof(XmlSerializationStrategy) }
         };
 
-        private readonly ConcurrentDictionary<Regex, Lazy<ISerializerStrategy>> serializers;
+        public readonly static SerializationManager Serializer = new SerializationManager(defaultConfigurations);
 
-        static SerializationManager()
-        {
-            Serializer = new SerializationManager();
-        }
+        private readonly ConcurrentDictionary<Regex, Lazy<ISerializerStrategy>> serializers;
 
         public SerializationManager()
             : this(defaultConfigurations)
