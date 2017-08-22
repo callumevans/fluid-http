@@ -4,13 +4,10 @@ using System.Net.Http;
 
 namespace FluidHttp
 {
-    public class FluidRequest
+    public class FluidRequest : IFluidRequest
     {
-        private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
-        private readonly List<Parameter> parameters = new List<Parameter>();
-
-        public IReadOnlyDictionary<string, string> Headers => new Dictionary<string, string>(this.headers);
-        public IReadOnlyList<Parameter> Parameters => new List<Parameter>(this.parameters);
+        public IDictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
+        public IList<Parameter> Parameters { get; set; } = new List<Parameter>();
 
         public string Url
         {
@@ -40,9 +37,7 @@ namespace FluidHttp
                         if (Uri.IsWellFormedUriString(queryString, UriKind.Relative))
                         {
                             List<Parameter> queryStringParameters = ParseQueryString(queryString);
-
-                            parameters.Clear();
-                            parameters.AddRange(queryStringParameters);
+                            Parameters = queryStringParameters;
 
                             // Remove query string from url
                             newUrl = newUrl.Substring(0, newUrl.IndexOf('?'));
@@ -60,7 +55,7 @@ namespace FluidHttp
         {
             set
             {
-                SetHeader(RequestHeaders.ContentType, value);
+                Headers[RequestHeaders.ContentType] = value;
             }
             get
             {
@@ -88,29 +83,9 @@ namespace FluidHttp
             this.Url = url;
         }
 
-        public void SetHeader(string header, string value)
-        {
-            this.headers[header] = value;
-        }
-
-        public void RemoveHeader(string header)
-        {
-            this.headers.Remove(header);
-        }
-
-        public void AddQueryParameter(string parameterName, object value)
-        {
-            AddParameter(parameterName, value, ParameterType.Query);
-        }
-
-        public void AddBodyParameter(string parameterName, object value)
-        {
-            AddParameter(parameterName, value, ParameterType.Body);
-        }
-
         public void AddParameter(Parameter parameter)
         {
-            this.parameters.Add(parameter);
+            Parameters.Add(parameter);
         }
 
         public void AddParameter(string parameterName, object value, ParameterType type)
@@ -118,17 +93,12 @@ namespace FluidHttp
             AddParameter(new Parameter(parameterName, value, type));
         }
 
-        public void RemoveParameters(Predicate<Parameter> predicate)
-        {
-            this.parameters.RemoveAll(predicate);
-        }
-
         public void SetJsonBody(object content)
         {
             Body = SerializationManager.Serializer
                 .Serialize(MimeTypes.ApplicationJson, content);
 
-            SetHeader(RequestHeaders.ContentType, MimeTypes.ApplicationJson);
+            Headers[RequestHeaders.ContentType] = MimeTypes.ApplicationJson;
         }
 
         public void SetXmlBody(object content)
@@ -136,7 +106,7 @@ namespace FluidHttp
             Body = SerializationManager.Serializer
                 .Serialize(MimeTypes.ApplicationXml, content);
 
-            SetHeader(RequestHeaders.ContentType, MimeTypes.ApplicationXml);
+            Headers[RequestHeaders.ContentType] = MimeTypes.ApplicationXml;
         }
 
         private List<Parameter> ParseQueryString(string queryString)

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FluidHttp
 {
-    public class FluidClient : IDisposable
+    public class FluidClient : IFluidClient, IDisposable
     {
         public string BaseUrl
         {
@@ -19,9 +19,7 @@ namespace FluidHttp
             }
             set
             {
-                baseUrlSet = !(string.IsNullOrWhiteSpace(value));
-
-                if (baseUrlSet == false) return;
+                if (string.IsNullOrWhiteSpace(value)) return;
 
                 if (Uri.IsWellFormedUriString(value, UriKind.Absolute) == false)
                     throw new BadBaseUriException();
@@ -32,7 +30,14 @@ namespace FluidHttp
 
         private string baseUrl;
 
-        protected bool baseUrlSet;
+        protected bool BaseUrlSet
+        {
+            get
+            {
+                return !(string.IsNullOrWhiteSpace(baseUrl));
+            }
+        }
+
         private readonly ConcurrentDictionary<string, string> defaultHeaders = new ConcurrentDictionary<string, string>();
         private readonly HttpClient httpClient;
 
@@ -71,11 +76,11 @@ namespace FluidHttp
             }
         }
 
-        public async Task<FluidResponse> FetchAsync(FluidRequest request)
+        public async Task<FluidResponse> FetchAsync(IFluidRequest request)
         {
             string requestUrl = Uri.EscapeUriString(request.Url.Trim());
 
-            if (baseUrlSet == true)
+            if (BaseUrlSet == true)
             {
                 // Make sure resource url is a valid relative uri
                 // so we can safely append it to the client's BaseUrl
@@ -105,7 +110,7 @@ namespace FluidHttp
             foreach (var header in defaultHeaders)
             {
                 if (request.Headers.ContainsKey(header.Key) == false)
-                    request.SetHeader(header.Key, header.Value);
+                    request.Headers[header.Key] = header.Value;
             }
 
             // Build up query string for request url
@@ -146,7 +151,7 @@ namespace FluidHttp
 
             httpRequest.Content = new StringContent(bodyContent, Encoding.UTF8, contentTypeValue ?? MimeTypes.ApplicationFormEncoded);
 
-            request.RemoveHeader(RequestHeaders.ContentType);
+            request.Headers.Remove(RequestHeaders.ContentType);
 
             // Build headers
             foreach (var header in request.Headers)
@@ -166,7 +171,7 @@ namespace FluidHttp
 
         public Task<FluidResponse> FetchAsync()
         {
-            if (baseUrlSet == false)
+            if (BaseUrlSet == false)
                 throw new NoUrlProvidedException();
 
             return FetchAsync("");

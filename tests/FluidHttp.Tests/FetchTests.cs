@@ -349,7 +349,7 @@ namespace FluidHttp.Tests
 
             FluidRequest request = new FluidRequest();
 
-            request.AddQueryParameter(key, value);
+            request.WithQueryParameter(key, value);
 
             request.Url = url;
 
@@ -381,7 +381,7 @@ namespace FluidHttp.Tests
 
             FluidRequest request = new FluidRequest();
 
-            request.AddQueryParameter("ArrayTest", arrayValues);
+            request.WithQueryParameter("ArrayTest", arrayValues);
 
             request.Url = url;
 
@@ -418,10 +418,10 @@ namespace FluidHttp.Tests
 
             FluidRequest request = new FluidRequest();
 
-            request.AddQueryParameter("TestParameter", true);
-            request.AddQueryParameter("OtherTest", "hello world!");
-            request.AddQueryParameter("ArrayTest", arrayValues);
-            request.AddQueryParameter("NumberTest", 123);
+            request.WithQueryParameter("TestParameter", true);
+            request.WithQueryParameter("OtherTest", "hello world!");
+            request.WithQueryParameter("ArrayTest", arrayValues);
+            request.WithQueryParameter("NumberTest", 123);
 
             request.Url = url;
 
@@ -449,7 +449,7 @@ namespace FluidHttp.Tests
 
             request.Url = requestUrl;
 
-            request.AddQueryParameter("MyOtherParameter", "hello mars");
+            request.WithQueryParameter("MyOtherParameter", "hello mars");
 
             // Act
             await client.FetchAsync(request);
@@ -474,8 +474,8 @@ namespace FluidHttp.Tests
 
             FluidRequest request = new FluidRequest();
 
-            request.AddQueryParameter("Parameter", "red");
-            request.AddQueryParameter("Parameter", "blue");
+            request.WithQueryParameter("Parameter", "red");
+            request.WithQueryParameter("Parameter", "blue");
 
             // Act
             await client.FetchAsync(request);
@@ -595,7 +595,7 @@ namespace FluidHttp.Tests
 
             FluidRequest request = new FluidRequest();
 
-            request.AddBodyParameter(key, value);
+            request.WithBodyParameter(key, value);
 
             string expected = $"{key}={value}";
 
@@ -633,7 +633,7 @@ namespace FluidHttp.Tests
 
             FluidRequest request = new FluidRequest();
 
-            request.AddBodyParameter("TestValue", character);
+            request.WithBodyParameter("TestValue", character);
 
             string expected = $"TestValue={encoded}";
 
@@ -659,7 +659,7 @@ namespace FluidHttp.Tests
 
             FluidRequest request = new FluidRequest();
 
-            request.SetHeader("Key", "Value");
+            request.Headers["Key"] = "Value";
 
             // Act
             await client.FetchAsync(request);

@@ -24,10 +24,10 @@ namespace FluidHttp.Tests
             // Arrange
             FluidRequest request = new FluidRequest();
 
-            request.SetHeader("HeaderKey", "HeaderValue");
+            request.Headers["HeaderKey"] = "HeaderValue";
 
             // Act
-            request.SetHeader("HeaderKey", "NewHeader!");
+            request.Headers["HeaderKey"] = "NewHeader!";
 
             // Assert
             Assert.True(request.Headers["HeaderKey"] == "NewHeader!");
@@ -40,7 +40,7 @@ namespace FluidHttp.Tests
             FluidRequest request = new FluidRequest();
 
             // Act
-            request.SetHeader("HeaderKey", "HeaderValue");
+            request.Headers.Add("HeaderKey", "HeaderValue");
 
             // Assert
             Assert.True(request.Headers["HeaderKey"] == "HeaderValue");
@@ -57,74 +57,6 @@ namespace FluidHttp.Tests
 
             // Assert
             Assert.Contains(request.Parameters, x => x.Name == "MyParameter");
-        }
-
-        [Fact]
-        public void RemoveParameter_RemovesAllParametersWithName()
-        {
-            // Arrange
-            FluidRequest request = new FluidRequest();
-
-            var paramOne = new Parameter("MyParameter", null, ParameterType.Body);
-            var paramTwo = new Parameter("MyParameter", null, ParameterType.Query);
-            var paramThree = new Parameter("MyOtherParameter", null, ParameterType.Query);
-
-            request.AddParameter(paramOne);
-            request.AddParameter(paramTwo);
-            request.AddParameter(paramThree);
-
-            // Act
-            request.RemoveParameters(x => x.Name == "MyParameter");
-
-            // Assert
-            Assert.True(request.Parameters.Contains(paramThree) && request.Parameters.Count == 1);
-        }
-
-        [Fact]
-        public void RemoveParameter_RemovesAllParametersWithType()
-        {
-            // Arrange
-            FluidRequest request = new FluidRequest();
-
-            var paramOne = new Parameter("MyParameter", null, ParameterType.Body);
-            var paramTwo = new Parameter("MyParameter", null, ParameterType.Query);
-            var paramThree = new Parameter("MyOtherParameter", null, ParameterType.Query);
-
-            request.AddParameter(paramOne);
-            request.AddParameter(paramTwo);
-            request.AddParameter(paramThree);
-
-            // Act
-            request.RemoveParameters(x => x.Type == ParameterType.Query);
-
-            // Assert
-            Assert.True(request.Parameters.Contains(paramOne) && request.Parameters.Count == 1);
-        }
-
-        [Fact]
-        public void RemoveParameter_RemovesAllParametersWithNameAndType()
-        {
-            // Arrange
-            FluidRequest request = new FluidRequest();
-
-            var paramOne = new Parameter("MyParameter", null, ParameterType.Body);
-            var paramTwo = new Parameter("MyParameter", null, ParameterType.Body);
-            var paramThree = new Parameter("MyParameter", null, ParameterType.Query);
-            var paramFour = new Parameter("MyOtherParameter", null, ParameterType.Query);
-
-            request.AddParameter(paramOne);
-            request.AddParameter(paramTwo);
-            request.AddParameter(paramThree);
-            request.AddParameter(paramFour);
-
-            // Act
-            request.RemoveParameters(x => x.Name == "MyParameter" && x.Type == ParameterType.Body);
-
-            // Assert
-            Assert.True(
-                request.Parameters.Contains(paramThree) && 
-                request.Parameters.Contains(paramFour) && 
-                request.Parameters.Count == 2);
         }
     }
 }

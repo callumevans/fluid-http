@@ -4,30 +4,34 @@ namespace FluidHttp
 {
     public static class FluidRequestExecutorExtensions
     {
-        public static FluidRequest WithHeader(this FluidRequest request, string header, string value)
+        public static IFluidRequest WithHeader(this IFluidRequest request, string header, string value)
         {
-            request.SetHeader(header, value);
+            request.Headers[header] = value;
             return request;
         }
 
-        public static FluidRequest WithBodyParameter(this FluidRequest request, string name, object value)
+        public static IFluidRequest WithBodyParameter(this IFluidRequest request, string name, object value)
         {
-            request.AddBodyParameter(name, value);
+            request.Parameters.Add(new Parameter(
+                name, value, ParameterType.Body));
+
             return request;
         }
 
-        public static FluidRequest WithQueryParameter(this FluidRequest request, string name, object value)
+        public static IFluidRequest WithQueryParameter(this IFluidRequest request, string name, object value)
         {
-            request.AddQueryParameter(name, value);
+            request.Parameters.Add(new Parameter(
+                name, value, ParameterType.Query));
+
             return request;
         }
 
-        public static Task<FluidResponse> FetchAsync(this FluidRequest request)
+        public static Task<FluidResponse> FetchAsync(this IFluidRequest request)
         {
             return FetchAsync(request, null);
         }
 
-        public static Task<FluidResponse> FetchAsync(this FluidRequest request, string baseUrl)
+        public static Task<FluidResponse> FetchAsync(this IFluidRequest request, string baseUrl)
         {
             var client = new FluidClient(baseUrl);
 

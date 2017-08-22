@@ -131,7 +131,7 @@ namespace FluidHttp.Tests
 
             request.Url = url;
 
-            request.AddBodyParameter("Test", "TestValue");
+            request.WithBodyParameter("Test", "TestValue");
             
             object bodyContent = new
             {
@@ -166,7 +166,7 @@ namespace FluidHttp.Tests
 
             request.Url = url;
 
-            request.AddBodyParameter("Test", "TestValue");
+            request.WithBodyParameter("Test", "TestValue");
 
             object bodyContent = new
             {
