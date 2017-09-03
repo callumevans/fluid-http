@@ -1,10 +1,6 @@
 ﻿using FluidHttp.Tests.Mocks;
-using Moq;
-using Moq.Protected;
 using Newtonsoft.Json;
 using System;
-using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using static FluidHttp.Tests.DeserialisationTests;
@@ -13,27 +9,14 @@ namespace FluidHttp.Tests
 {
     public class AddBodyTests
     {
-        private readonly Mock<FakeHttpMessageHandler> messageHandler
-            = new Mock<FakeHttpMessageHandler>() { CallBase = true };
-
+        private readonly FakeHttpMessageHandler messageHandler = new FakeHttpMessageHandler();
         private readonly FluidClient client;
 
-        const string contentResponse = "response content!";
         const string url = "http://localhost.com";
-
-        HttpResponseMessage message = new HttpResponseMessage
-        {
-            Content = new StringContent(contentResponse)
-        };
 
         public AddBodyTests()
         {
-            messageHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(message));
-
-            client = new FluidClient(messageHandler.Object);
+            client = new FluidClient(messageHandler);
         }
 
         [Fact]
@@ -59,15 +42,8 @@ namespace FluidHttp.Tests
             string jsonContent = SerializationManager.Serializer
                 .Serialize("application/json", bodyContent);
 
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => 
-                        i.Content.ReadAsStringAsync().Result == jsonContent &&
-                        i.Content.Headers.ContentType.MediaType == "application/json"),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(jsonContent, messageHandler.SentMessageContent);
+            Assert.Equal("application/json", messageHandler.ContentHeaders.ContentType.MediaType);
         }
 
         [Fact]
@@ -93,15 +69,8 @@ namespace FluidHttp.Tests
             string xmlContent = SerializationManager.Serializer
                 .Serialize("application/xml", bodyContent);
 
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i =>
-                        i.Content.ReadAsStringAsync().Result == xmlContent &&
-                        i.Content.Headers.ContentType.MediaType == "application/xml"),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(xmlContent, messageHandler.SentMessageContent);
+            Assert.Equal("application/xml", messageHandler.ContentHeaders.ContentType.MediaType);
         }
 
         [Fact]
@@ -147,15 +116,8 @@ namespace FluidHttp.Tests
             // Assert
             string jsonContent = JsonConvert.SerializeObject(bodyContent);
 
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i =>
-                        i.Content.ReadAsStringAsync().Result == jsonContent &&
-                        i.Content.Headers.ContentType.MediaType == "application/json"),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(jsonContent, messageHandler.SentMessageContent);
+            Assert.Equal("application/json", messageHandler.ContentHeaders.ContentType.MediaType);
         }
 
         [Fact]
@@ -184,14 +146,7 @@ namespace FluidHttp.Tests
             // Assert
             string jsonContent = JsonConvert.SerializeObject(bodyContent);
 
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i =>
-                        i.Content.ReadAsStringAsync().Result == "Test=TestValue"),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal("Test=TestValue", messageHandler.SentMessageContent);
         }
     }
 }

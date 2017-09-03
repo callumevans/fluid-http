@@ -1,14 +1,11 @@
 ﻿using FluidHttp.Exceptions;
 using FluidHttp.Tests.Mocks;
-using Moq;
-using Moq.Protected;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -16,27 +13,15 @@ namespace FluidHttp.Tests
 {
     public class FetchTests
     {
-        private readonly Mock<FakeHttpMessageHandler> messageHandler
-            = new Mock<FakeHttpMessageHandler>() { CallBase = true };
-
+        private readonly FakeHttpMessageHandler messageHandler = new FakeHttpMessageHandler();
         private readonly FluidClient client;
 
         const string contentResponse = "response content!";
         const string url = "http://localhost.com";
 
-        HttpResponseMessage message = new HttpResponseMessage
-        {
-            Content = new StringContent(contentResponse),
-        };
-
         public FetchTests()
         {
-            messageHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(message));
-
-            client = new FluidClient(messageHandler.Object);
+            client = new FluidClient(messageHandler);
         }
 
         (string methodString, HttpMethod methodModel)[] methodsArray = new(string, HttpMethod)[]
@@ -68,13 +53,8 @@ namespace FluidHttp.Tests
             await client.FetchAsync(url);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(url)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(new Uri(url), messageHandler.RequestUrl);
+            Assert.Equal(HttpMethod.Get, messageHandler.RequestMethod);
         }
 
         [Fact]
@@ -94,7 +74,7 @@ namespace FluidHttp.Tests
         public async Task Fetch_PlacesHeadersFromResponseInResult(string responseType)
         {
             // Arrange
-            message.Content.Headers.ContentType = new MediaTypeHeaderValue(responseType);
+            messageHandler.ResponseMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(responseType);
 
             // Act
             FluidResponse response = await client.FetchAsync(url);
@@ -107,7 +87,7 @@ namespace FluidHttp.Tests
         public async Task Fetch_MultipleValuesForHeader_ReturnsCsvInFluidResponse()
         {
             // Arrange
-            message.Content.Headers.Add("Test-Header", new string[] { "value1", "value2" });
+            messageHandler.ResponseMessage.Content.Headers.Add("Test-Header", new string[] { "value1", "value2" });
 
             // Act
             FluidResponse response = await client.FetchAsync(url);
@@ -124,13 +104,8 @@ namespace FluidHttp.Tests
             {
                 await client.FetchAsync(url, method.methodModel);
 
-                messageHandler
-                    .Protected()
-                    .Verify(
-                        "SendAsync",
-                        Times.Once(),
-                        ItExpr.Is<HttpRequestMessage>(i => i.Method == method.methodModel && i.RequestUri == new Uri(url)),
-                        ItExpr.IsAny<CancellationToken>());
+                Assert.Equal(method.methodModel, messageHandler.RequestMethod);
+                Assert.Equal(new Uri(url), messageHandler.RequestUrl);
             }
         }
 
@@ -142,13 +117,8 @@ namespace FluidHttp.Tests
             {
                 await client.FetchAsync(url, method.methodString);
 
-                messageHandler
-                    .Protected()
-                    .Verify(
-                        "SendAsync",
-                        Times.Once(),
-                        ItExpr.Is<HttpRequestMessage>(i => i.Method == method.methodModel && i.RequestUri == new Uri(url)),
-                        ItExpr.IsAny<CancellationToken>());
+                Assert.Equal(method.methodModel, messageHandler.RequestMethod);
+                Assert.Equal(new Uri(url), messageHandler.RequestUrl);
             }
         }
 
@@ -159,13 +129,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(url, "made-up-method");
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.Method == new HttpMethod("made-up-method")),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(new HttpMethod("made-up-method"), messageHandler.RequestMethod);
         }
 
         [Fact]
@@ -180,13 +144,8 @@ namespace FluidHttp.Tests
             await client.FetchAsync(request);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(url)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(HttpMethod.Get, messageHandler.RequestMethod);
+            Assert.Equal(new Uri(url), messageHandler.RequestUrl);
         }
 
         [Fact]
@@ -202,13 +161,8 @@ namespace FluidHttp.Tests
             await client.FetchAsync(resource);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(baseUrl + resource)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(HttpMethod.Get, messageHandler.RequestMethod);
+            Assert.Equal(new Uri(baseUrl + resource), messageHandler.RequestUrl);
         }
 
         [Theory]
@@ -277,13 +231,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(url);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(url)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(new Uri(url), messageHandler.RequestUrl);
         }
 
         [Theory]
@@ -295,17 +243,9 @@ namespace FluidHttp.Tests
             // Arrange
             client.BaseUrl = baseUrl;
 
-            // Act
-            await client.FetchAsync(url);
-
-            // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(url)),
-                    ItExpr.IsAny<CancellationToken>());
+            // Act + Assert
+            await Assert.ThrowsAsync<BadAbsoluteUriException>(
+                async () => await client.FetchAsync("/test-resource"));
         }
 
         [Theory]
@@ -330,13 +270,8 @@ namespace FluidHttp.Tests
             await client.FetchAsync(resourceUrl);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.Method == HttpMethod.Get && i.RequestUri == new Uri(expected)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(HttpMethod.Get, messageHandler.RequestMethod);
+            Assert.Equal(new Uri(expected), messageHandler.RequestUrl);
         }
 
         [Theory]
@@ -357,13 +292,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(request);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(expectedUrl)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
         }
 
         [Fact]
@@ -389,13 +318,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(request);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(expectedUrl)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
         }
 
         [Fact]
@@ -429,13 +352,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(request);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(expectedUrl)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
         }
 
         [Fact]
@@ -455,13 +372,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(request);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(expectedUrl)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
         }
 
         [Fact]
@@ -481,13 +392,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(request);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(expectedUrl)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
         }
 
         [Theory]
@@ -506,13 +411,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(resource);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(url + expected)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(new Uri(url + expected), messageHandler.RequestUrl);
         }
 
         [Fact]
@@ -525,13 +424,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync();
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri == new Uri(url)),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(new Uri(url), messageHandler.RequestUrl);
         }
 
         [Fact]
@@ -576,13 +469,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(resource);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i => i.RequestUri.OriginalString == $"{url}/test{encoded}resource"),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(new Uri($"{url}/test{encoded}resource"), messageHandler.RequestUrl);
         }
 
         [Theory]
@@ -603,14 +490,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(request);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i =>
-                        i.Content.ReadAsStringAsync().Result == expected),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(expected, messageHandler.SentMessageContent);
         }
 
         [Theory]
@@ -641,14 +521,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(request);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i =>
-                        i.Content.ReadAsStringAsync().Result == expected),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(expected, messageHandler.SentMessageContent);
         }
 
         [Fact]
@@ -665,14 +538,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(request);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i =>
-                        i.Headers.GetValues("Key").Single() == "Value"),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal("Value", messageHandler.RequestHeaders.GetValues("Key").Single());
         }
 
         [Fact]
@@ -685,14 +551,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync();
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i =>
-                        i.Content.Headers.ContentType.MediaType == "application/x-www-form-encoded"),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal("application/x-www-form-encoded", messageHandler.ContentHeaders.ContentType.MediaType);
         }
 
         [Theory]
@@ -713,14 +572,7 @@ namespace FluidHttp.Tests
             await client.FetchAsync(request);
 
             // Assert
-            messageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(i =>
-                        i.Content.Headers.ContentType.MediaType == type),
-                    ItExpr.IsAny<CancellationToken>());
+            Assert.Equal(type, messageHandler.ContentHeaders.ContentType.MediaType);
         }
 
         [Theory]
@@ -732,7 +584,7 @@ namespace FluidHttp.Tests
         {
             // Arrange
             client.BaseUrl = url;
-            message.StatusCode = statusCode;
+            messageHandler.ResponseMessage.StatusCode = statusCode;
 
             // Act
             FluidResponse response = await client.FetchAsync();
