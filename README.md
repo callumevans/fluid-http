@@ -16,4 +16,8 @@
   <a href="https://github.com/callumevans/fluid-http/blob/master/LICENSE">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square">
   </a>
+  
+  <a href="https://gitter.im/fluid-http/">
+  <img src="https://img.shields.io/gitter/room/fluid-http/shields.svg?style=flat-square">
+  </a>
 </p>
