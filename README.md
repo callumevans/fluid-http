@@ -27,8 +27,8 @@
 FluidHttp is heavily inspired by [RestSharp](https://github.com/restsharp/RestSharp) and offers a similar API that's _super_ easy to jump into.
 
 ```csharp
-var client = new FluidClient("https://jsonplaceholder.typicode.com");
-var request = new FluidRequest("posts/1");
+var client = new FluidClient("https://localhost.com/");
+var request = new FluidRequest("resources/1");
 
 // Append headers to the request!
 request.WithHeader("Content-Type", "application/json");
@@ -43,7 +43,7 @@ request.WithQueryParameter("QueryParameter", "query parameter value!");
 FluidResponse response = await client.FetchAsync(request);
 
 // Map the response to an object
-Post post = response.ParseResponse<Post>();
+MyClass myObject = response.ParseResponse<MyClass>();
 ```
 
 ## Fluent
@@ -51,12 +51,12 @@ Post post = response.ParseResponse<Post>();
 FluidHttp also comes with a few handy extension methods to help you quickly spin up a request without messing about with clients.
 
 ```csharp
-Post post = (await new FluidRequest("https://jsonplaceholder.typicode.com/posts/1")
+MyClass myObject = (await new FluidRequest("https://localhost.com/resources/1")
     .WithHeader("Content-Type", "application/json")
     .WithBodyParameter("Data", "body content")
     .WithQueryParameter("QueryParameter", "query parameter value!")
     .FetchAsync())
-    .ParseResponse<Post>();
+    .ParseResponse<MyClass>();
 ```
 
 ## Fast
