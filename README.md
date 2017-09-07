@@ -51,8 +51,7 @@ Post post = response.ParseResponse<Post>();
 FluidHttp also comes with a few handy extension methods to help you quickly spin up a request without messing about with clients.
 
 ```csharp
-Post post = (await
-    new FluidRequest("https://jsonplaceholder.typicode.com/posts/1")
+Post post = (await new FluidRequest("https://jsonplaceholder.typicode.com/posts/1")
     .WithHeader("Content-Type", "application/json")
     .WithBodyParameter("Data", "body content")
     .WithQueryParameter("QueryParameter", "query parameter value!")
