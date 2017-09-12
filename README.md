@@ -24,7 +24,7 @@
 
 ## Familiar
 
-FluidHttp is heavily inspired by [RestSharp](https://github.com/restsharp/RestSharp) and offers a similar API that's _super_ easy to jump into.
+FluidHttp is a .NET HTTP client library heavily inspired by [RestSharp](https://github.com/restsharp/RestSharp) and offers a similar API that's _super_ easy to jump into.
 
 ```csharp
 var client = new FluidClient("https://localhost.com/");
