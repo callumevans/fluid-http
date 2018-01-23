@@ -43,17 +43,17 @@ namespace FluidHttp
         
         private readonly string[] ReservedContentHeaders =
         {
-            "Allow",
-            "Content-Disposition",
-            "Content-Encoding",
-            "Content-Language",
-            "Content-Length",
-            "Content-Location",
-            "Content-MD5",
-            "Content-Range",
-            "Content-Type",
-            "Expires",
-            "Last-Modified"
+            RequestHeaders.Allow,
+            RequestHeaders.ContentDisposition,
+            RequestHeaders.ContentEncoding,
+            RequestHeaders.ContentLanguage,
+            RequestHeaders.ContentLength,
+            RequestHeaders.ContentLocation,
+            RequestHeaders.ContentMD5,
+            RequestHeaders.ContentRange,
+            RequestHeaders.ContentType,
+            RequestHeaders.Expires,
+            RequestHeaders.LastModified
         };
 
         public FluidClient()
