@@ -28,15 +28,15 @@ namespace FluidHttp
             return request;
         }
 
-        public static async Task<FluidResponse> FetchAsync(this IFluidRequest request)
+        public static Task<FluidResponse> FetchAsync(this IFluidRequest request)
         {
-            return await FetchAsync(request, null);
+            return FetchAsync(request, null);
         }
 
-        public static async Task<FluidResponse> FetchAsync(this IFluidRequest request, string baseUrl)
+        public static Task<FluidResponse> FetchAsync(this IFluidRequest request, string baseUrl)
         {
             client.BaseUrl = baseUrl;
-            return await client.FetchAsync(request);
+            return client.FetchAsync(request);
         }
     }
 }
