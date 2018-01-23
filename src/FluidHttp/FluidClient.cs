@@ -40,6 +40,21 @@ namespace FluidHttp
 
         private readonly ConcurrentDictionary<string, string> defaultHeaders = new ConcurrentDictionary<string, string>();
         private readonly HttpClient httpClient;
+        
+        private readonly string[] ReservedContentHeaders =
+        {
+            RequestHeaders.Allow,
+            RequestHeaders.ContentDisposition,
+            RequestHeaders.ContentEncoding,
+            RequestHeaders.ContentLanguage,
+            RequestHeaders.ContentLength,
+            RequestHeaders.ContentLocation,
+            RequestHeaders.ContentMD5,
+            RequestHeaders.ContentRange,
+            RequestHeaders.ContentType,
+            RequestHeaders.Expires,
+            RequestHeaders.LastModified
+        };
 
         public FluidClient()
             : this(string.Empty)
@@ -66,14 +81,6 @@ namespace FluidHttp
         public void SetDefaultHeader(string name, string value)
         {
             defaultHeaders.TryAdd(name, value);
-
-            // Rebuild HttpClient default headers
-            httpClient.DefaultRequestHeaders.Clear();
-
-            foreach (var header in defaultHeaders)
-            {
-                httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
-            }
         }
 
         public async Task<FluidResponse> FetchAsync(IFluidRequest request)
@@ -110,7 +117,9 @@ namespace FluidHttp
             foreach (var header in defaultHeaders)
             {
                 if (request.Headers.ContainsKey(header.Key) == false)
+                {
                     request.Headers[header.Key] = header.Value;
+                }
             }
 
             // Build up query string for request url
@@ -146,17 +155,37 @@ namespace FluidHttp
             }
 
             // Set content type
-            string contentTypeValue;
-            request.Headers.TryGetValue(RequestHeaders.ContentType, out contentTypeValue);
-
-            httpRequest.Content = new StringContent(bodyContent, Encoding.UTF8, contentTypeValue ?? MimeTypes.ApplicationFormEncoded);
-
-            request.Headers.Remove(RequestHeaders.ContentType);
+            string contentTypeHeader = RequestHeaders.ContentType;
+            string contentTypeValue = MimeTypes.ApplicationFormEncoded;
+            
+            foreach (var requestHeader in request.Headers)
+            {
+                if (requestHeader.Key.ToLower() == RequestHeaders.ContentType.ToLower())
+                {
+                    contentTypeHeader = requestHeader.Key;
+                    contentTypeValue = requestHeader.Value;
+                    break;
+                }
+            }
+            
+            httpRequest.Content = new StringContent(
+                bodyContent,
+                Encoding.UTF8,
+                contentTypeValue);
+            
+            request.Headers.Remove(contentTypeHeader);
 
             // Build headers
             foreach (var header in request.Headers)
             {
-                httpRequest.Headers.Add(header.Key, header.Value);
+                if (ReservedContentHeaders.Contains(header.Key, StringComparer.InvariantCultureIgnoreCase))
+                {
+                    httpRequest.Content.Headers.Add(header.Key, header.Value);
+                }
+                else
+                {
+                    httpRequest.Headers.Add(header.Key, header.Value);
+                }
             }
 
             // Execute request

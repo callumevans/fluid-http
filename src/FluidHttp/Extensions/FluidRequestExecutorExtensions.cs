@@ -4,6 +4,8 @@ namespace FluidHttp
 {
     public static class FluidRequestExecutorExtensions
     {
+        private static readonly FluidClient client = new FluidClient();
+
         public static IFluidRequest WithHeader(this IFluidRequest request, string header, string value)
         {
             request.Headers[header] = value;
@@ -33,8 +35,7 @@ namespace FluidHttp
 
         public static Task<FluidResponse> FetchAsync(this IFluidRequest request, string baseUrl)
         {
-            var client = new FluidClient(baseUrl);
-
+            client.BaseUrl = baseUrl;
             return client.FetchAsync(request);
         }
     }
