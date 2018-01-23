@@ -81,12 +81,6 @@ namespace FluidHttp
         public void SetDefaultHeader(string name, string value)
         {
             defaultHeaders.TryAdd(name, value);
-
-            if (!this.ReservedContentHeaders.Contains(name))
-            {
-                this.httpClient.DefaultRequestHeaders.Add(
-                    name, value);
-            }
         }
 
         public async Task<FluidResponse> FetchAsync(IFluidRequest request)
@@ -161,20 +155,30 @@ namespace FluidHttp
             }
 
             // Set content type
-            string contentTypeValue;
-            request.Headers.TryGetValue(RequestHeaders.ContentType, out contentTypeValue);
-
+            string contentTypeHeader = RequestHeaders.ContentType;
+            string contentTypeValue = MimeTypes.ApplicationXml;
+            
+            foreach (var requestHeader in request.Headers)
+            {
+                if (requestHeader.Key.ToLower() == RequestHeaders.ContentType.ToLower())
+                {
+                    contentTypeHeader = requestHeader.Key;
+                    contentTypeValue = requestHeader.Value;
+                    break;
+                }
+            }
+            
             httpRequest.Content = new StringContent(
                 bodyContent,
                 Encoding.UTF8,
-                contentTypeValue ?? MimeTypes.ApplicationFormEncoded);
+                contentTypeValue);
             
-            request.Headers.Remove(RequestHeaders.ContentType);
+            request.Headers.Remove(contentTypeHeader);
 
             // Build headers
             foreach (var header in request.Headers)
             {
-                if (ReservedContentHeaders.Contains(header.Key))
+                if (ReservedContentHeaders.Contains(header.Key, StringComparer.InvariantCultureIgnoreCase))
                 {
                     httpRequest.Content.Headers.Add(header.Key, header.Value);
                 }

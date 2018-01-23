@@ -56,6 +56,10 @@ namespace FluidHttp.Tests
         [InlineData("Content-Type", "application/json", "application/json; charset=utf-8")]
         [InlineData("Expires", "Wed, 21 Oct 2015 07:28:00 GMT")]
         [InlineData("Last-Modified", "Wed, 21 Oct 2015 07:28:00 GMT")]
+        [InlineData("content-encoding", "gzip, identity")]
+        [InlineData("content-disposition", "attachment; filename=\"filename.jpg\"")]
+        [InlineData("allow", "GET, POST, HEAD")]
+        [InlineData("content-type", "text/plain", "text/plain; charset=utf-8")]
         public async Task ClientWithDefaultHeaders_MisusedHeader_WorksAnyway(string reservedHeader, string inputValue, string expectedValue = null)
         {
             // Arrange
@@ -69,7 +73,7 @@ namespace FluidHttp.Tests
 
             // Assert            
             var allHeaders = messageHandler.RequestHeaders.Concat(messageHandler.ContentHeaders).ToList();
-            var header = allHeaders.Single(x => x.Key == reservedHeader);
+            var header = allHeaders.Single(x => x.Key.ToLower() == reservedHeader.ToLower());
             var headerValue = string.Join(", ", header.Value);
             
             Assert.Equal(expectedValue ?? inputValue, headerValue);
