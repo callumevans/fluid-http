@@ -156,7 +156,7 @@ namespace FluidHttp
 
             // Set content type
             string contentTypeHeader = RequestHeaders.ContentType;
-            string contentTypeValue = MimeTypes.ApplicationXml;
+            string contentTypeValue = MimeTypes.ApplicationFormEncoded;
             
             foreach (var requestHeader in request.Headers)
             {
