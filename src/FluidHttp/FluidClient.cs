@@ -40,6 +40,21 @@ namespace FluidHttp
 
         private readonly ConcurrentDictionary<string, string> defaultHeaders = new ConcurrentDictionary<string, string>();
         private readonly HttpClient httpClient;
+        
+        private readonly string[] ReservedContentHeaders =
+        {
+            "Allow",
+            "Content-Disposition",
+            "Content-Encoding",
+            "Content-Language",
+            "Content-Length",
+            "Content-Location",
+            "Content-MD5",
+            "Content-Range",
+            "Content-Type",
+            "Expires",
+            "Last-Modified"
+        };
 
         public FluidClient()
             : this(string.Empty)
@@ -67,12 +82,10 @@ namespace FluidHttp
         {
             defaultHeaders.TryAdd(name, value);
 
-            // Rebuild HttpClient default headers
-            httpClient.DefaultRequestHeaders.Clear();
-
-            foreach (var header in defaultHeaders)
+            if (!this.ReservedContentHeaders.Contains(name))
             {
-                httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                this.httpClient.DefaultRequestHeaders.Add(
+                    name, value);
             }
         }
 
@@ -110,7 +123,9 @@ namespace FluidHttp
             foreach (var header in defaultHeaders)
             {
                 if (request.Headers.ContainsKey(header.Key) == false)
+                {
                     request.Headers[header.Key] = header.Value;
+                }
             }
 
             // Build up query string for request url
@@ -149,14 +164,24 @@ namespace FluidHttp
             string contentTypeValue;
             request.Headers.TryGetValue(RequestHeaders.ContentType, out contentTypeValue);
 
-            httpRequest.Content = new StringContent(bodyContent, Encoding.UTF8, contentTypeValue ?? MimeTypes.ApplicationFormEncoded);
-
+            httpRequest.Content = new StringContent(
+                bodyContent,
+                Encoding.UTF8,
+                contentTypeValue ?? MimeTypes.ApplicationFormEncoded);
+            
             request.Headers.Remove(RequestHeaders.ContentType);
 
             // Build headers
             foreach (var header in request.Headers)
             {
-                httpRequest.Headers.Add(header.Key, header.Value);
+                if (ReservedContentHeaders.Contains(header.Key))
+                {
+                    httpRequest.Content.Headers.Add(header.Key, header.Value);
+                }
+                else
+                {
+                    httpRequest.Headers.Add(header.Key, header.Value);
+                }
             }
 
             // Execute request
