@@ -41,21 +41,13 @@ namespace FluidHttp
         
         public static IFluidRequest WithJsonBody(this IFluidRequest request, object content)
         {
-            request.Body = SerializationManager.Serializer
-                .Serialize(MimeTypes.ApplicationJson, content);
-
-            request.Headers[RequestHeaders.ContentType] = MimeTypes.ApplicationJson;
-            
+            request.SetBody(content, MimeTypes.ApplicationJson);
             return request;
         }
 
         public static IFluidRequest WithXmlBody(this IFluidRequest request, object content)
         {
-            request.Body = SerializationManager.Serializer
-                .Serialize(MimeTypes.ApplicationXml, content);
-            
-            request.Headers[RequestHeaders.ContentType] = MimeTypes.ApplicationXml;
-            
+            request.SetBody(content, MimeTypes.ApplicationXml);
             return request;
         }
     }
