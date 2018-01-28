@@ -8,6 +8,6 @@ namespace FluidHttp
 
         void SetDefaultHeader(string name, string value);
 
-        Task<FluidResponse> FetchAsync(IFluidRequest request);
+        Task<IFluidResponse> FetchAsync(IFluidRequest request);
     }
 }

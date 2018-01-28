@@ -3,6 +3,8 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Runtime.InteropServices.ComTypes;
 using System.Xml.Serialization;
 using Xunit;
 
@@ -14,6 +16,18 @@ namespace FluidHttp.Tests
         private static readonly int age = 24;
         private static readonly bool truthy = true;
 
+        private readonly IDictionary<string, string> jsonHeaders =
+            new Dictionary<string, string>
+        {
+            {"Content-Type", "application/json"}
+        };
+    
+        private readonly IDictionary<string, string> xmlHeaders =
+            new Dictionary<string, string>
+        {
+            {"Content-Type", "application/xml"}
+        };
+    
         string jsonContent;
         string xmlContent;
 
@@ -47,15 +61,9 @@ namespace FluidHttp.Tests
         public void ReturnsJsonContent_DeserialiseToObject()
         {
             // Arrage
-            FluidResponse response = new FluidResponse
-            {
-                Headers = new Dictionary<string, string>
-                {
-                    { "Content-Type", "application/json" }
-                },
-                Content = jsonContent
-            };
-
+            FluidResponse response = new FluidResponse(
+                jsonHeaders, jsonContent, HttpStatusCode.OK);
+            
             // Act
             Person person = response.ParseResponse<Person>();
 
@@ -69,15 +77,9 @@ namespace FluidHttp.Tests
         public void ReturnsXmlContent_DeserialiseToObject()
         {
             // Arrange
-            FluidResponse response = new FluidResponse
-            {
-                Headers = new Dictionary<string, string>
-                {
-                    { "Content-Type", "application/xml" }
-                },
-                Content = xmlContent
-            };
-
+            FluidResponse response = new FluidResponse(
+                xmlHeaders, xmlContent, HttpStatusCode.OK);
+            
             // Act
             Person person = response.ParseResponse<Person>();
 
@@ -94,15 +96,14 @@ namespace FluidHttp.Tests
         public void ReturnsContentWithoutMimeType_ReturnDefault(string contentType)
         {
             // Arrange
-            FluidResponse response = new FluidResponse
+            var testHeaders = new Dictionary<string, string>
             {
-                Headers = new Dictionary<string, string>
-                {
-                    { "Content-Type", contentType }
-                },
-                Content = jsonContent
+                { "Content-Type", contentType }
             };
-
+            
+            FluidResponse response = new FluidResponse(
+                testHeaders, xmlContent, HttpStatusCode.OK);
+            
             // Act
             var output = response.ParseResponse<Person>();
 
@@ -114,11 +115,13 @@ namespace FluidHttp.Tests
         public void ReturnsContentWithoutContentTypeHeader_ReturnDefault()
         {
             // Arrange
-            FluidResponse response = new FluidResponse
+            var noHeaders = new Dictionary<string, string>
             {
-                Content = jsonContent
             };
-
+            
+            FluidResponse response = new FluidResponse(
+                noHeaders, xmlContent, HttpStatusCode.OK);
+            
             // Act
             var output = response.ParseResponse<Person>();
 
@@ -130,14 +133,8 @@ namespace FluidHttp.Tests
         public void ReturnsContentWithWrongMimeType_ReturnDefault()
         {
             // Arrange
-            FluidResponse response = new FluidResponse
-            {
-                Headers = new Dictionary<string, string>
-                {
-                    { "Content-Type", "application/xml" }
-                },
-                Content = jsonContent
-            };
+            FluidResponse response = new FluidResponse(
+                xmlHeaders, jsonContent, HttpStatusCode.OK);
 
             // Act
             var output = response.ParseResponse<Person>();
@@ -150,14 +147,8 @@ namespace FluidHttp.Tests
         public void ReturnsContentWithWrongMimeType_ManualStrategy_DeserialiseSuccessfully()
         {
             // Arrange
-            FluidResponse response = new FluidResponse
-            {
-                Headers = new Dictionary<string, string>
-                {
-                    { "Content-Type", "application/xml" }
-                },
-                Content = jsonContent
-            };
+            FluidResponse response = new FluidResponse(
+                xmlHeaders, jsonContent, HttpStatusCode.OK);
 
             // Act
             Person person = response.ParseResponse<Person>(new JsonSerializationStrategy());
@@ -174,14 +165,8 @@ namespace FluidHttp.Tests
             // Arrange
             SerializationManager manager = new SerializationManager();
 
-            FluidResponse response = new FluidResponse
-            {
-                Headers = new Dictionary<string, string>
-                {
-                    { "Content-Type", "application/json" }
-                },
-                Content = jsonContent
-            };
+            FluidResponse response = new FluidResponse(
+                jsonHeaders, jsonContent, HttpStatusCode.OK);
 
             // Act
             Person person = manager.ParseResponse<Person>(response);
@@ -206,15 +191,14 @@ namespace FluidHttp.Tests
                 new Dictionary<string, Type>());
 
             manager.SetSerializer<JsonSerializationStrategy>(fuzzyMatcher);
-
-            FluidResponse response = new FluidResponse
+            
+            var testHeaders = new Dictionary<string, string>
             {
-                Headers = new Dictionary<string, string>
-                {
-                    { "Content-Type", contentType }
-                },
-                Content = jsonContent
+                { "Content-Type", contentType }
             };
+            
+            FluidResponse response = new FluidResponse(
+                testHeaders, jsonContent, HttpStatusCode.OK);
 
             // Act
             Person person = manager.ParseResponse<Person>(response);
@@ -239,15 +223,14 @@ namespace FluidHttp.Tests
                 new Dictionary<string, Type>());
 
             manager.SetSerializer<XmlSerializationStrategy>(fuzzyMatcher);
-
-            FluidResponse response = new FluidResponse
+            
+            var testHeaders = new Dictionary<string, string>
             {
-                Headers = new Dictionary<string, string>
-                {
-                    { "Content-Type", contentType }
-                },
-                Content = xmlContent
+                { "Content-Type", contentType }
             };
+            
+            FluidResponse response = new FluidResponse(
+                testHeaders, xmlContent, HttpStatusCode.OK);
 
             // Act
             Person person = manager.ParseResponse<Person>(response);
@@ -276,16 +259,15 @@ namespace FluidHttp.Tests
         {
             // Arrange
             SerializationManager manager = new SerializationManager();
-
-            FluidResponse response = new FluidResponse
+            
+            var testHeaders = new Dictionary<string, string>
             {
-                Headers = new Dictionary<string, string>
-                {
-                    { "Content-Type", contentType }
-                },
-                Content = isJson ? jsonContent : xmlContent
+                { "Content-Type", contentType }
             };
-
+            
+            FluidResponse response = new FluidResponse(
+                testHeaders, isJson ? jsonContent : xmlContent, HttpStatusCode.OK);
+            
             // Act
             Person person = manager.ParseResponse<Person>(response);
 

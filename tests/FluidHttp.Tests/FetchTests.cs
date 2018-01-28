@@ -39,7 +39,7 @@ namespace FluidHttp.Tests
         public async Task Fetch_ReturnsResponse()
         {
             // Act
-            FluidResponse response = await client.FetchAsync(url);
+            IFluidResponse response = await client.FetchAsync(url);
 
             // Assert
             Assert.IsType<FluidResponse>(response);
@@ -61,7 +61,7 @@ namespace FluidHttp.Tests
         public async Task Fetch_PlacesContentFromResponseInResult()
         {
             // Act
-            FluidResponse response = await client.FetchAsync(url);
+            IFluidResponse response = await client.FetchAsync(url);
 
             // Assert
             Assert.Equal(contentResponse, response.Content);
@@ -77,7 +77,7 @@ namespace FluidHttp.Tests
             messageHandler.ResponseMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(responseType);
 
             // Act
-            FluidResponse response = await client.FetchAsync(url);
+            IFluidResponse response = await client.FetchAsync(url);
 
             // Assert
             Assert.Equal(responseType, response.Headers["Content-Type"]);
@@ -90,7 +90,7 @@ namespace FluidHttp.Tests
             messageHandler.ResponseMessage.Content.Headers.Add("Test-Header", new string[] { "value1", "value2" });
 
             // Act
-            FluidResponse response = await client.FetchAsync(url);
+            IFluidResponse response = await client.FetchAsync(url);
 
             // Assert
             Assert.Equal("value1,value2", response.Headers["Test-Header"]);
@@ -587,7 +587,7 @@ namespace FluidHttp.Tests
             messageHandler.ResponseMessage.StatusCode = statusCode;
 
             // Act
-            FluidResponse response = await client.FetchAsync();
+            IFluidResponse response = await client.FetchAsync();
 
             // Assert
             Assert.Equal(statusCode, response.StatusCode);

@@ -3,13 +3,22 @@ using System.Net;
 
 namespace FluidHttp
 {
-    public class FluidResponse
+    public class FluidResponse : IFluidResponse
     {
-        public Dictionary<string, string> Headers { get; set; }
-            = new Dictionary<string, string>();
+        public IDictionary<string, string> Headers { get; }
 
-        public string Content { get; set; }
+        public string Content { get; }
 
-        public HttpStatusCode StatusCode { get; internal set; }
+        public HttpStatusCode StatusCode { get; }
+
+        public FluidResponse(
+            IDictionary<string, string> headers, 
+            string content, 
+            HttpStatusCode statusCode)
+        {
+            this.Headers = headers;
+            this.Content = content;
+            this.StatusCode = statusCode;
+        }
     }
 }

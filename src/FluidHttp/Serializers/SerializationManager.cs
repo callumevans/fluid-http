@@ -12,14 +12,16 @@ namespace FluidHttp
         private const string jsonContentMatcher = "*/json*";
         private const string xmlContentMatcher = "*/xml*";
 
-        private static readonly Dictionary<string, Type> defaultConfigurations = new Dictionary<string, Type>
+        private static readonly Dictionary<string, Type> defaultConfigurations = 
+            new Dictionary<string, Type>
         {
             { jsonContentMatcher, typeof(JsonSerializationStrategy) },
             { xmlContentMatcher, typeof(XmlSerializationStrategy) }
         };
-
-        public readonly static SerializationManager Serializer = new SerializationManager(defaultConfigurations);
-
+        
+        public static readonly SerializationManager Serializer =
+            new SerializationManager(defaultConfigurations);
+        
         private readonly ConcurrentDictionary<Regex, Lazy<ISerializerStrategy>> serializers;
 
         public SerializationManager()
@@ -70,17 +72,11 @@ namespace FluidHttp
                 throw new ArgumentException("Content type cannot be null or empty", contentType);
 
             Lazy<ISerializerStrategy> serializerDictionaryEntry = serializers
-                .Where(x => x.Key.IsMatch(contentType))
-                .SingleOrDefault().Value;
+                .SingleOrDefault(x => x.Key.IsMatch(contentType)).Value;
 
-            if (serializerDictionaryEntry == null)
-            {
-                return null;
-            }
-            else
-            {
-                return serializerDictionaryEntry.Value;
-            }
+            return serializerDictionaryEntry == null 
+                ? null 
+                : serializerDictionaryEntry.Value;
         }
 
         private Regex BuildGlobber(string pattern)
