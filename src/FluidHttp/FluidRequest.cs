@@ -11,10 +11,7 @@ namespace FluidHttp
 
         public string Url
         {
-            get
-            {
-                return this.url;
-            }
+            get => this.url;
             set
             {
                 string newUrl = value ?? string.Empty;
@@ -75,7 +72,7 @@ namespace FluidHttp
 
         public FluidRequest(string url, HttpMethod method)
         {
-            this.url = url;
+            this.Url = url;
             this.Method = method;
         }
 
