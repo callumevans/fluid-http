@@ -17,12 +17,7 @@ namespace FluidHttp
             }
             set
             {
-                string newUrl;
-
-                if (value == null)
-                    newUrl = string.Empty;
-                else
-                    newUrl = value;
+                string newUrl = value ?? string.Empty;
 
                 // Parse query parameters
                 int queryStringStartIndex = newUrl.IndexOf('?');
@@ -53,21 +48,11 @@ namespace FluidHttp
 
         public string ContentType
         {
-            set
-            {
-                Headers[RequestHeaders.ContentType] = value;
-            }
-            get
-            {
-                if (Headers.ContainsKey(RequestHeaders.ContentType))
-                {
-                    return Headers[RequestHeaders.ContentType];
-                }
-                else
-                {
-                    return MimeTypes.ApplicationFormEncoded;
-                }
-            }
+            set => Headers[RequestHeaders.ContentType] = value;
+            
+            get => Headers.ContainsKey(RequestHeaders.ContentType) 
+                ? Headers[RequestHeaders.ContentType] 
+                : MimeTypes.ApplicationFormEncoded;
         }
 
         public string Body { get; set; } = string.Empty;

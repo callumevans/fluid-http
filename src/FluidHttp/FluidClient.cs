@@ -46,7 +46,7 @@ namespace FluidHttp
         }
 
         public bool BaseUrlSet => !(string.IsNullOrWhiteSpace(baseUrl));
-       
+
         public FluidClient()
             : this(string.Empty)
         {

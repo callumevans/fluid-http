@@ -19,13 +19,13 @@ namespace FluidHttp.Tests
         private readonly IDictionary<string, string> jsonHeaders =
             new Dictionary<string, string>
         {
-            {"Content-Type", "application/json"}
+            { "Content-Type", "application/json"}
         };
     
         private readonly IDictionary<string, string> xmlHeaders =
             new Dictionary<string, string>
         {
-            {"Content-Type", "application/xml"}
+            { "Content-Type", "application/xml"}
         };
     
         string jsonContent;
@@ -115,9 +115,7 @@ namespace FluidHttp.Tests
         public void ReturnsContentWithoutContentTypeHeader_ReturnDefault()
         {
             // Arrange
-            var noHeaders = new Dictionary<string, string>
-            {
-            };
+            var noHeaders = new Dictionary<string, string>();
             
             FluidResponse response = new FluidResponse(
                 noHeaders, xmlContent, HttpStatusCode.OK);
