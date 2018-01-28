@@ -12,7 +12,13 @@ namespace FluidHttp.Tests
         private readonly FakeHttpMessageHandler messageHandler = new FakeHttpMessageHandler();
         private readonly FluidClient client;
 
-        const string url = "http://localhost.com";
+        private const string url = "http://localhost.com";
+
+        private readonly Person bodyContent = new Person
+        {
+            Name = "Test name",
+            Age = 123
+        };
 
         public AddBodyTests()
         {
@@ -26,14 +32,7 @@ namespace FluidHttp.Tests
             FluidRequest request = new FluidRequest();
 
             request.Url = url;
-
-            object bodyContent = new
-            {
-                Name = "Test name",
-                Age = 123
-            };
-
-            request.SetJsonBody(bodyContent);
+            request.WithJsonBody(bodyContent);
 
             // Act
             await client.FetchAsync(request);
@@ -53,14 +52,7 @@ namespace FluidHttp.Tests
             FluidRequest request = new FluidRequest();
 
             request.Url = url;
-
-            Person bodyContent = new Person
-            {
-                Name = "Test name",
-                Age = 123
-            };
-
-            request.SetXmlBody(bodyContent);
+            request.WithXmlBody(bodyContent);
 
             // Act
             await client.FetchAsync(request);
@@ -78,18 +70,16 @@ namespace FluidHttp.Tests
         {
             // Arrange
             FluidRequest request = new FluidRequest();
-
             request.Url = url;
-
-            object bodyContent = new
+            
+            var anonymousType = new
             {
-                Name = "Test name",
-                Age = 123
+                Name = "test"
             };
-
+            
             // Act + Assert
             Assert.Throws<ArgumentException>(
-                () => request.SetXmlBody(bodyContent));
+                () => request.WithXmlBody(anonymousType));
         }
 
         [Fact]
@@ -99,16 +89,8 @@ namespace FluidHttp.Tests
             FluidRequest request = new FluidRequest();
 
             request.Url = url;
-
             request.WithBodyParameter("Test", "TestValue");
-            
-            object bodyContent = new
-            {
-                Name = "Test name",
-                Age = 123
-            };
-
-            request.SetJsonBody(bodyContent);
+            request.WithJsonBody(bodyContent);
 
             // Act
             await client.FetchAsync(request);
@@ -127,25 +109,15 @@ namespace FluidHttp.Tests
             FluidRequest request = new FluidRequest();
 
             request.Url = url;
-
             request.WithBodyParameter("Test", "TestValue");
-
-            object bodyContent = new
-            {
-                Name = "Test name",
-                Age = 123
-            };
-
-            request.SetJsonBody(bodyContent);
-
+            request.WithJsonBody(bodyContent);
             request.Body = string.Empty;
 
             // Act
             await client.FetchAsync(request);
 
             // Assert
-            string jsonContent = JsonConvert.SerializeObject(bodyContent);
-
+            JsonConvert.SerializeObject(bodyContent);
             Assert.Equal("Test=TestValue", messageHandler.SentMessageContent);
         }
     }

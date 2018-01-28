@@ -98,22 +98,6 @@ namespace FluidHttp
             AddParameter(new Parameter(parameterName, value, type));
         }
 
-        public void SetJsonBody(object content)
-        {
-            Body = SerializationManager.Serializer
-                .Serialize(MimeTypes.ApplicationJson, content);
-
-            Headers[RequestHeaders.ContentType] = MimeTypes.ApplicationJson;
-        }
-
-        public void SetXmlBody(object content)
-        {
-            Body = SerializationManager.Serializer
-                .Serialize(MimeTypes.ApplicationXml, content);
-
-            Headers[RequestHeaders.ContentType] = MimeTypes.ApplicationXml;
-        }
-
         private List<Parameter> ParseQueryString(string queryString)
         {
             List<Parameter> result = new List<Parameter>();

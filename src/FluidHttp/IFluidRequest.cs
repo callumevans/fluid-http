@@ -5,13 +5,13 @@ namespace FluidHttp
 {
     public interface IFluidRequest
     {
-        IDictionary<string, string> Headers { get; }
+        IDictionary<string, string> Headers { get; set; }
 
-        IList<Parameter> Parameters { get; }
+        IList<Parameter> Parameters { get; set; }
 
-        string Url { get; }
+        string Url { get; set; }
 
-        string Body { get; }
+        string Body { get; set; }
 
         HttpMethod Method { get; }
     }
