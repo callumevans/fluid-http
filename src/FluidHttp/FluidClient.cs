@@ -256,7 +256,6 @@ namespace FluidHttp
             }
 
             statusCode = message.StatusCode;
-
             return new FluidResponse(headers, content, statusCode);
         }
         

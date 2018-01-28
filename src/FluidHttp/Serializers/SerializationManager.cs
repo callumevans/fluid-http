@@ -73,9 +73,7 @@ namespace FluidHttp
             Lazy<ISerializerStrategy> serializerDictionaryEntry = serializers
                 .SingleOrDefault(x => x.Key.IsMatch(contentType)).Value;
 
-            return serializerDictionaryEntry == null 
-                ? null 
-                : serializerDictionaryEntry.Value;
+            return serializerDictionaryEntry?.Value;
         }
 
         private Regex BuildGlobber(string pattern)
