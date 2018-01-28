@@ -38,5 +38,25 @@ namespace FluidHttp
             client.BaseUrl = baseUrl;
             return client.FetchAsync(request);
         }
+        
+        public static IFluidRequest WithJsonBody(this IFluidRequest request, object content)
+        {
+            request.Body = SerializationManager.Serializer
+                .Serialize(MimeTypes.ApplicationJson, content);
+
+            request.Headers[RequestHeaders.ContentType] = MimeTypes.ApplicationJson;
+            
+            return request;
+        }
+
+        public static IFluidRequest WithXmlBody(this IFluidRequest request, object content)
+        {
+            request.Body = SerializationManager.Serializer
+                .Serialize(MimeTypes.ApplicationXml, content);
+            
+            request.Headers[RequestHeaders.ContentType] = MimeTypes.ApplicationXml;
+            
+            return request;
+        }
     }
 }
