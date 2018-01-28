@@ -12,24 +12,7 @@ namespace FluidHttp
 {
     public class FluidClient : IFluidClient, IDisposable
     {
-        public string BaseUrl
-        {
-            get => baseUrl;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value)) return;
-
-                if (Uri.IsWellFormedUriString(value, UriKind.Absolute) == false)
-                    throw new BadBaseUriException();
-
-                this.baseUrl = value.Trim();
-            }
-        }
-
         private string baseUrl;
-
-        private bool BaseUrlSet => !(string.IsNullOrWhiteSpace(baseUrl));
-
         private readonly ConcurrentDictionary<string, string> defaultHeaders = new ConcurrentDictionary<string, string>();
         private readonly HttpClient httpClient;
         
@@ -47,7 +30,23 @@ namespace FluidHttp
             RequestHeaders.Expires,
             RequestHeaders.LastModified
         };
+        
+        public string BaseUrl
+        {
+            get => baseUrl;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value)) return;
 
+                if (Uri.IsWellFormedUriString(value, UriKind.Absolute) == false)
+                    throw new BadBaseUriException();
+
+                this.baseUrl = value.Trim();
+            }
+        }
+
+        public bool BaseUrlSet => !(string.IsNullOrWhiteSpace(baseUrl));
+       
         public FluidClient()
             : this(string.Empty)
         {
@@ -195,34 +194,6 @@ namespace FluidHttp
                 .ConfigureAwait(false);
 
             return response;
-        }
-
-        public Task<IFluidResponse> FetchAsync()
-        {
-            if (BaseUrlSet == false)
-                throw new NoUrlProvidedException();
-
-            return FetchAsync("");
-        }
-
-        public Task<IFluidResponse> FetchAsync(string url)
-        {
-            return FetchAsync(url, HttpMethod.Get);
-        }
-
-        public Task<IFluidResponse> FetchAsync(string url, string method)
-        {
-            return FetchAsync(url, new HttpMethod(method));
-        }
-
-        public Task<IFluidResponse> FetchAsync(string url, HttpMethod method)
-        {
-            FluidRequest request = new FluidRequest();
-
-            request.Url = url;
-            request.Method = method;
-
-            return FetchAsync(request);
         }
 
         private string BuildQueryString(IEnumerable<Parameter> parameters)

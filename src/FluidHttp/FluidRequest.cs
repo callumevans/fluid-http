@@ -88,6 +88,12 @@ namespace FluidHttp
             this.Method = method;
         }
 
+        public FluidRequest(string url, HttpMethod method)
+        {
+            this.url = url;
+            this.Method = method;
+        }
+
         public void AddParameter(Parameter parameter)
         {
             Parameters.Add(parameter);

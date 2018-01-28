@@ -62,7 +62,6 @@ namespace FluidHttp
         public string Serialize(string contentType, object content)
         {
             ISerializer strategy = GetStrategyForContentType(contentType);
-
             return strategy.Serialize(content);
         }
 
