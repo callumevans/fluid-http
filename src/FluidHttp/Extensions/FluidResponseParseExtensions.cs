@@ -2,14 +2,14 @@
 
 namespace FluidHttp
 {
-    public static class ParseExtensions
+    public static class FluidResponseParseExtensions
     {
-        public static T ParseResponse<T>(this FluidResponse response)
+        public static T ParseResponse<T>(this IFluidResponse response)
         {
             return ParseResponse<T>(response, new SerializationManager());
         }
 
-        public static T ParseResponse<T>(this FluidResponse response, SerializationManager serialisationManager)
+        public static T ParseResponse<T>(this IFluidResponse response, SerializationManager serialisationManager)
         {
             if (response.Headers.ContainsKey(RequestHeaders.ContentType) == false)
                 return default(T);
@@ -18,12 +18,12 @@ namespace FluidHttp
                 response.Headers[RequestHeaders.ContentType], response.Content);
         }
 
-        public static T ParseResponse<T>(this FluidResponse response, ISerializerStrategy serialiser)
+        public static T ParseResponse<T>(this IFluidResponse response, ISerializerStrategy serialiser)
         {
             return serialiser.Deserialize<T>(response.Content);
         }
 
-        public static T ParseResponse<T>(this SerializationManager manager, FluidResponse response)
+        public static T ParseResponse<T>(this SerializationManager manager, IFluidResponse response)
         {
             return manager.Deserialize<T>(response.Headers[RequestHeaders.ContentType], response.Content);
         }

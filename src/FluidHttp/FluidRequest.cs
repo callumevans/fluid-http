@@ -6,23 +6,15 @@ namespace FluidHttp
 {
     public class FluidRequest : IFluidRequest
     {
-        public IDictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
-        public IList<Parameter> Parameters { get; set; } = new List<Parameter>();
+        public IDictionary<string, string> Headers { get; } = new Dictionary<string, string>();
+        public IList<Parameter> Parameters { get; private set; } = new List<Parameter>();
 
         public string Url
         {
-            get
-            {
-                return this.url;
-            }
+            get => this.url;
             set
             {
-                string newUrl;
-
-                if (value == null)
-                    newUrl = string.Empty;
-                else
-                    newUrl = value;
+                string newUrl = value ?? string.Empty;
 
                 // Parse query parameters
                 int queryStringStartIndex = newUrl.IndexOf('?');
@@ -53,21 +45,11 @@ namespace FluidHttp
 
         public string ContentType
         {
-            set
-            {
-                Headers[RequestHeaders.ContentType] = value;
-            }
-            get
-            {
-                if (Headers.ContainsKey(RequestHeaders.ContentType))
-                {
-                    return Headers[RequestHeaders.ContentType];
-                }
-                else
-                {
-                    return MimeTypes.ApplicationFormEncoded;
-                }
-            }
+            set => Headers[RequestHeaders.ContentType] = value;
+            
+            get => Headers.ContainsKey(RequestHeaders.ContentType) 
+                ? Headers[RequestHeaders.ContentType] 
+                : MimeTypes.ApplicationFormEncoded;
         }
 
         public string Body { get; set; } = string.Empty;
@@ -88,6 +70,12 @@ namespace FluidHttp
             this.Method = method;
         }
 
+        public FluidRequest(string url, HttpMethod method)
+        {
+            this.Url = url;
+            this.Method = method;
+        }
+
         public void AddParameter(Parameter parameter)
         {
             Parameters.Add(parameter);
@@ -98,6 +86,14 @@ namespace FluidHttp
             AddParameter(new Parameter(parameterName, value, type));
         }
 
+        public void SetBody(object content, string contentType)
+        {
+            Body = SerializationManager.Serializer
+                .Serialize(contentType, content);
+
+            Headers[RequestHeaders.ContentType] = contentType;
+        }
+       
         private List<Parameter> ParseQueryString(string queryString)
         {
             List<Parameter> result = new List<Parameter>();

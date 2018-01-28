@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,33 +12,7 @@ namespace FluidHttp
 {
     public class FluidClient : IFluidClient, IDisposable
     {
-        public string BaseUrl
-        {
-            get
-            {
-                return baseUrl;
-            }
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value)) return;
-
-                if (Uri.IsWellFormedUriString(value, UriKind.Absolute) == false)
-                    throw new BadBaseUriException();
-
-                this.baseUrl = value.Trim();
-            }
-        }
-
         private string baseUrl;
-
-        protected bool BaseUrlSet
-        {
-            get
-            {
-                return !(string.IsNullOrWhiteSpace(baseUrl));
-            }
-        }
-
         private readonly ConcurrentDictionary<string, string> defaultHeaders = new ConcurrentDictionary<string, string>();
         private readonly HttpClient httpClient;
         
@@ -55,6 +30,22 @@ namespace FluidHttp
             RequestHeaders.Expires,
             RequestHeaders.LastModified
         };
+        
+        public string BaseUrl
+        {
+            get => baseUrl;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value)) return;
+
+                if (Uri.IsWellFormedUriString(value, UriKind.Absolute) == false)
+                    throw new BadBaseUriException();
+
+                this.baseUrl = value.Trim();
+            }
+        }
+
+        public bool BaseUrlSet => !(string.IsNullOrWhiteSpace(baseUrl));
 
         public FluidClient()
             : this(string.Empty)
@@ -81,9 +72,15 @@ namespace FluidHttp
         public void SetDefaultHeader(string name, string value)
         {
             defaultHeaders.TryAdd(name, value);
+        }       
+        
+        public FluidClient WithDefaultHeader(string name, string value)
+        {
+            SetDefaultHeader(name, value);
+            return this;
         }
 
-        public async Task<FluidResponse> FetchAsync(IFluidRequest request)
+        public async Task<IFluidResponse> FetchAsync(IFluidRequest request)
         {
             string requestUrl = Uri.EscapeUriString(request.Url.Trim());
 
@@ -189,52 +186,26 @@ namespace FluidHttp
             }
 
             // Execute request
-            HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
+            HttpResponseMessage httpResponse = await httpClient
+                .SendAsync(httpRequest)
+                .ConfigureAwait(false);
 
-            var response = await new FluidResponse()
-                .FromHttpResponseMessage(httpResponse)
+            var response = await BuildResponseFromHttpMessage(httpResponse)
                 .ConfigureAwait(false);
 
             return response;
         }
 
-        public Task<FluidResponse> FetchAsync()
-        {
-            if (BaseUrlSet == false)
-                throw new NoUrlProvidedException();
-
-            return FetchAsync("");
-        }
-
-        public Task<FluidResponse> FetchAsync(string url)
-        {
-            return FetchAsync(url, HttpMethod.Get);
-        }
-
-        public Task<FluidResponse> FetchAsync(string url, string method)
-        {
-            return FetchAsync(url, new HttpMethod(method));
-        }
-
-        public Task<FluidResponse> FetchAsync(string url, HttpMethod method)
-        {
-            FluidRequest request = new FluidRequest();
-
-            request.Url = url;
-            request.Method = method;
-
-            return FetchAsync(request);
-        }
-
         private string BuildQueryString(IEnumerable<Parameter> parameters)
         {
             var queryString = new StringBuilder();
-
+            var lastParameter = parameters.Last();
+            
             foreach (var parameter in parameters)
             {
                 queryString.Append(ParameterToQueryString(parameter));
 
-                if (parameter != parameters.Last())
+                if (parameter != lastParameter)
                     queryString.Append("&");
             }
 
@@ -269,6 +240,25 @@ namespace FluidHttp
             return parameterString.ToString();
         }
 
+        private async Task<IFluidResponse> BuildResponseFromHttpMessage(HttpResponseMessage message)
+        {
+            string content;
+            HttpStatusCode statusCode;
+            var headers = new Dictionary<string, string>();
+
+            content = await message.Content
+                .ReadAsStringAsync()
+                .ConfigureAwait(false);
+
+            foreach (var header in message.Headers.Concat(message.Content.Headers))
+            {
+                headers.Add(header.Key, string.Join(",", header.Value));
+            }
+
+            statusCode = message.StatusCode;
+            return new FluidResponse(headers, content, statusCode);
+        }
+        
         #region IDisposable
 
         protected bool disposedValue;
