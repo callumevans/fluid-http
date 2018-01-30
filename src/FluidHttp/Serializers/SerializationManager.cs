@@ -40,12 +40,6 @@ namespace FluidHttp
             }
         }
 
-        public void SetSerializer<T>(string contentType)
-            where T : ISerializerStrategy, new()
-        {
-            SetSerializerInternal(contentType, Activator.CreateInstance<T>());
-        }
-
         public void SetSerializer(string contentType, ISerializerStrategy serializer)
         {
             SetSerializerInternal(contentType, serializer);
