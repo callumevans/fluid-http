@@ -1,0 +1,18 @@
+{
+  "name": "John",
+  "age": 30,
+  "cars": [
+    {
+      "Make": "Ford",
+      "Price": 1990.99
+    },
+    {
+      "Make": "BMW",
+      "Price": 1222.99
+    },
+    {
+      "Make": "Citroen",
+      "Price": 100.99
+    }
+  ]
+}
