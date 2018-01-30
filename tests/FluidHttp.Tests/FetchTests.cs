@@ -16,8 +16,8 @@ namespace FluidHttp.Tests
         private readonly FakeHttpMessageHandler messageHandler = new FakeHttpMessageHandler();
         private readonly FluidClient client;
 
-        const string contentResponse = "response content!";
-        const string url = "http://localhost.com";
+        private const string contentResponse = "response content!";
+        private const string url = "http://localhost.com";
 
         public FetchTests()
         {
