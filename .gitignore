@@ -5,3 +5,7 @@ src/FluidHttp/obj
 
 tests/FluidHttp.Tests/bin
 tests/FluidHttp.Tests/obj
+
+tests/FluidHttp.Benchmarks/bin
+tests/FluidHttp.Benchmarks/obj
+tests/FluidHttp.Benchmarks/BenchmarkDotNet.Artifacts
