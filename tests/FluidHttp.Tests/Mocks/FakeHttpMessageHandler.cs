@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,10 +9,15 @@ namespace FluidHttp.Tests.Mocks
 {
     public class FakeHttpMessageHandler : HttpMessageHandler
     {
-        public HttpResponseMessage ResponseMessage { get; set; } = new HttpResponseMessage
+        public FakeHttpMessageHandler(string content = "response content!", string contentType = "application/json")
         {
-            Content = new StringContent("response content!")
-        };
+            ResponseMessage = new HttpResponseMessage
+            {
+                Content = new StringContent(content, Encoding.UTF8, contentType)
+            };
+        }
+        
+        public HttpResponseMessage ResponseMessage { get; set; }
 
         public string SentMessageContent { get; private set; }
         public string ResponseMessageContent { get; private set; }
@@ -27,7 +33,6 @@ namespace FluidHttp.Tests.Mocks
         {
             SentMessageContent = request.Content.ReadAsStringAsync().Result;
             ResponseMessageContent = ResponseMessage.Content.ReadAsStringAsync().Result;
-
             RequestMethod = request.Method;
             RequestUrl = request.RequestUri;
             RequestMessage = request;

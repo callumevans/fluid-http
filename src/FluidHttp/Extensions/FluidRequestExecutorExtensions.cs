@@ -28,17 +28,6 @@ namespace FluidHttp
             return request;
         }
 
-        public static Task<IFluidResponse> FetchAsync(this IFluidRequest request)
-        {
-            return FetchAsync(request, null);
-        }
-
-        public static Task<IFluidResponse> FetchAsync(this IFluidRequest request, string baseUrl)
-        {
-            client.BaseUrl = baseUrl;
-            return client.FetchAsync(request);
-        }
-        
         public static IFluidRequest WithJsonBody(this IFluidRequest request, object content)
         {
             request.SetBody(content, MimeTypes.ApplicationJson);
@@ -49,6 +38,17 @@ namespace FluidHttp
         {
             request.SetBody(content, MimeTypes.ApplicationXml);
             return request;
+        }
+        
+        public static Task<IFluidResponse> FetchAsync(this IFluidRequest request)
+        {
+            return client.FetchAsync(request);
+        }
+        
+        public static async Task<T> FetchAsync<T>(this IFluidRequest request)
+        {
+            IFluidResponse response = await client.FetchAsync(request);
+            return response.ParseResponse<T>();
         }
     }
 }

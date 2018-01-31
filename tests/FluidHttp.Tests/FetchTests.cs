@@ -13,19 +13,19 @@ namespace FluidHttp.Tests
 {
     public class FetchTests
     {
-        private readonly FakeHttpMessageHandler messageHandler = new FakeHttpMessageHandler();
+        private readonly FakeHttpMessageHandler messageHandler;
         private readonly FluidClient client;
 
-        const string contentResponse = "response content!";
-        const string url = "http://localhost.com";
+        private const string contentResponse = "response content!";
+        private const string url = "http://localhost.com";
 
         public FetchTests()
         {
+            messageHandler = new FakeHttpMessageHandler();
             client = new FluidClient(messageHandler);
         }
 
-        (string methodString, HttpMethod methodModel)[] methodsArray = new(string, HttpMethod)[]
-        {
+        private readonly (string methodString, HttpMethod methodModel)[] methodsArray = {
                 ("GET", HttpMethod.Get),
                 ("DELETE", HttpMethod.Delete),
                 ("HEAD", HttpMethod.Head),

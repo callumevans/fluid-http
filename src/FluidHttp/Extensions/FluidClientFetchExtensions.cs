@@ -26,8 +26,26 @@ namespace FluidHttp
 
         public static Task<IFluidResponse> FetchAsync(this IFluidClient client, string url, HttpMethod method)
         {
-            IFluidRequest request = new FluidRequest(url, method);
+            var request = new FluidRequest(url, method);
             return client.FetchAsync(request);
+        }
+
+        public static Task<T> FetchAsync<T>(this IFluidClient client, string url)
+        {
+            return client.FetchAsync<T>(url, HttpMethod.Get);
+        }
+
+        public static Task<T> FetchAsync<T>(this IFluidClient client, string url, string method)
+        {
+            return client.FetchAsync<T>(url, new HttpMethod(method));
+        }
+
+        public static async Task<T> FetchAsync<T>(this IFluidClient client, string url, HttpMethod method)
+        {
+            var request = new FluidRequest(url, method);
+            IFluidResponse response = await client.FetchAsync(request);
+            
+            return response.ParseResponse<T>();
         }
     }
 }
