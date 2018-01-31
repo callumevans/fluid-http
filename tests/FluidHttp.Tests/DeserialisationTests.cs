@@ -12,9 +12,9 @@ namespace FluidHttp.Tests
 {
     public class DeserialisationTests
     {
-        private static readonly string name = "Test Name";
-        private static readonly int age = 24;
-        private static readonly bool truthy = true;
+        private const string name = "Test Name";
+        private const int age = 24;
+        private const bool truthy = true;
 
         private readonly IDictionary<string, string> jsonHeaders =
             new Dictionary<string, string>
@@ -27,9 +27,9 @@ namespace FluidHttp.Tests
         {
             { "Content-Type", "application/xml"}
         };
-    
-        string jsonContent;
-        string xmlContent;
+
+        private readonly string jsonContent;
+        private readonly string xmlContent;
 
         public DeserialisationTests()
         {
@@ -186,7 +186,7 @@ namespace FluidHttp.Tests
         {
             // Arrange
             SerializationManager manager = new SerializationManager(
-                new Dictionary<string, Type>());
+                new Dictionary<string, ISerializerStrategy>());
 
             manager.SetSerializer<JsonSerializationStrategy>(fuzzyMatcher);
             
@@ -218,9 +218,74 @@ namespace FluidHttp.Tests
         {
             // Arrange
             SerializationManager manager = new SerializationManager(
-                new Dictionary<string, Type>());
+                new Dictionary<string, ISerializerStrategy>());
 
             manager.SetSerializer<XmlSerializationStrategy>(fuzzyMatcher);
+            
+            var testHeaders = new Dictionary<string, string>
+            {
+                { "Content-Type", contentType }
+            };
+            
+            FluidResponse response = new FluidResponse(
+                testHeaders, xmlContent, HttpStatusCode.OK);
+
+            // Act
+            Person person = manager.ParseResponse<Person>(response);
+
+            // Assert
+            Assert.Equal(name, person.Name);
+            Assert.Equal(age, person.Age);
+            Assert.True(person.Truthy);
+        }
+        
+        [Theory]
+        [InlineData("application/json", "*/json")]
+        [InlineData("application/json", "*json*")]
+        [InlineData("application/json, content-length 1000", "application/json*")]
+        [InlineData("text/json", "*/json")]
+        [InlineData("text/json", "*json*")]
+        [InlineData("text/json, content-length 1000", "text/json*")]
+        public void Deserialize_FuzzyJsonHeaders_PassInSerialisationStrategyInstance_SuccessfullyDeserialize(string contentType, string fuzzyMatcher)
+        {
+            // Arrange
+            SerializationManager manager = new SerializationManager(
+                new Dictionary<string, ISerializerStrategy>());
+
+            manager.SetSerializer(fuzzyMatcher, new JsonSerializationStrategy());
+            
+            var testHeaders = new Dictionary<string, string>
+            {
+                { "Content-Type", contentType }
+            };
+            
+            FluidResponse response = new FluidResponse(
+                testHeaders, jsonContent, HttpStatusCode.OK);
+
+            // Act
+            Person person = manager.ParseResponse<Person>(response);
+
+            // Assert
+            Assert.Equal(name, person.Name);
+            Assert.Equal(age, person.Age);
+            Assert.True(person.Truthy);
+        }
+        
+        [Theory]
+        [InlineData("application/xml", "*/xml")]
+        [InlineData("application/xml", "*xml*")]
+        [InlineData("application/xml, content-length 1000", "application/xml*")]
+        [InlineData("text/xml", "*/xml")]
+        [InlineData("text/xml", "*xml*")]
+        [InlineData("text/xml, content-length 1000", "text/xml*")]
+        public void Deserialize_FuzzyXmlHeaders_PassInSerialisationStrategyInstance_SuccessfullyDeserialize(
+            string contentType, string fuzzyMatcher)
+        {
+            // Arrange
+            SerializationManager manager = new SerializationManager(
+                new Dictionary<string, ISerializerStrategy>());
+
+            manager.SetSerializer(fuzzyMatcher, new XmlSerializationStrategy());
             
             var testHeaders = new Dictionary<string, string>
             {
