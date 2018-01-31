@@ -13,7 +13,7 @@ namespace FluidHttp.Tests
 {
     public class FetchTests
     {
-        private readonly FakeHttpMessageHandler messageHandler = new FakeHttpMessageHandler();
+        private readonly FakeHttpMessageHandler messageHandler;
         private readonly FluidClient client;
 
         private const string contentResponse = "response content!";
@@ -21,11 +21,11 @@ namespace FluidHttp.Tests
 
         public FetchTests()
         {
+            messageHandler = new FakeHttpMessageHandler();
             client = new FluidClient(messageHandler);
         }
 
-        (string methodString, HttpMethod methodModel)[] methodsArray = new(string, HttpMethod)[]
-        {
+        private readonly (string methodString, HttpMethod methodModel)[] methodsArray = {
                 ("GET", HttpMethod.Get),
                 ("DELETE", HttpMethod.Delete),
                 ("HEAD", HttpMethod.Head),
