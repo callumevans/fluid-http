@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 
 namespace FluidHttp
@@ -29,7 +30,7 @@ namespace FluidHttp
                         if (Uri.IsWellFormedUriString(queryString, UriKind.Relative))
                         {
                             List<Parameter> queryStringParameters = ParseQueryString(queryString);
-                            Parameters = queryStringParameters;
+                            Parameters = queryStringParameters.Concat(Parameters).ToList();
 
                             // Remove query string from url
                             newUrl = newUrl.Substring(0, newUrl.IndexOf('?'));
