@@ -14,15 +14,17 @@ namespace FluidHttp.Tests
     public class FetchTests
     {
         private readonly FakeHttpMessageHandler messageHandler;
-        private readonly FluidClient client;
+        private readonly FluidClient clientWithUrl;
+        private readonly FluidClient clientNoUrl;
 
         private const string contentResponse = "response content!";
-        private const string url = "http://localhost.com";
+        private const string baseUrl = "http://localhost.com";
 
         public FetchTests()
         {
             messageHandler = new FakeHttpMessageHandler();
-            client = new FluidClient(messageHandler);
+            clientWithUrl = new FluidClient(baseUrl, messageHandler);
+            clientNoUrl = new FluidClient(messageHandler);
         }
 
         private readonly (string methodString, HttpMethod methodModel)[] methodsArray = {
@@ -39,7 +41,7 @@ namespace FluidHttp.Tests
         public async Task Fetch_ReturnsResponse()
         {
             // Act
-            IFluidResponse response = await client.FetchAsync(url);
+            IFluidResponse response = await clientNoUrl.FetchAsync(baseUrl);
 
             // Assert
             Assert.IsType<FluidResponse>(response);
@@ -50,10 +52,10 @@ namespace FluidHttp.Tests
         public async Task Fetch_GetsContentFromUrl()
         {
             // Act
-            await client.FetchAsync(url);
+            await clientNoUrl.FetchAsync(baseUrl);
 
             // Assert
-            Assert.Equal(new Uri(url), messageHandler.RequestUrl);
+            Assert.Equal(new Uri(baseUrl), messageHandler.RequestUrl);
             Assert.Equal(HttpMethod.Get, messageHandler.RequestMethod);
         }
 
@@ -61,7 +63,7 @@ namespace FluidHttp.Tests
         public async Task Fetch_PlacesContentFromResponseInResult()
         {
             // Act
-            IFluidResponse response = await client.FetchAsync(url);
+            IFluidResponse response = await clientNoUrl.FetchAsync(baseUrl);
 
             // Assert
             Assert.Equal(contentResponse, response.Content);
@@ -77,7 +79,7 @@ namespace FluidHttp.Tests
             messageHandler.ResponseMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(responseType);
 
             // Act
-            IFluidResponse response = await client.FetchAsync(url);
+            IFluidResponse response = await clientNoUrl.FetchAsync(baseUrl);
 
             // Assert
             Assert.Equal(responseType, response.Headers["Content-Type"]);
@@ -87,10 +89,11 @@ namespace FluidHttp.Tests
         public async Task Fetch_MultipleValuesForHeader_ReturnsCsvInFluidResponse()
         {
             // Arrange
-            messageHandler.ResponseMessage.Content.Headers.Add("Test-Header", new string[] { "value1", "value2" });
+            messageHandler.ResponseMessage.Content.Headers.Add(
+                "Test-Header", new string[] { "value1", "value2" });
 
             // Act
-            IFluidResponse response = await client.FetchAsync(url);
+            IFluidResponse response = await clientNoUrl.FetchAsync(baseUrl);
 
             // Assert
             Assert.Equal("value1,value2", response.Headers["Test-Header"]);
@@ -102,10 +105,10 @@ namespace FluidHttp.Tests
             // Act + Assert
             foreach (var method in methodsArray)
             {
-                await client.FetchAsync(url, method.methodModel);
+                await clientNoUrl.FetchAsync(baseUrl, method.methodModel);
 
                 Assert.Equal(method.methodModel, messageHandler.RequestMethod);
-                Assert.Equal(new Uri(url), messageHandler.RequestUrl);
+                Assert.Equal(new Uri(baseUrl), messageHandler.RequestUrl);
             }
         }
 
@@ -115,10 +118,10 @@ namespace FluidHttp.Tests
             // Act + Assert
             foreach (var method in methodsArray)
             {
-                await client.FetchAsync(url, method.methodString);
+                await clientNoUrl.FetchAsync(baseUrl, method.methodString);
 
                 Assert.Equal(method.methodModel, messageHandler.RequestMethod);
-                Assert.Equal(new Uri(url), messageHandler.RequestUrl);
+                Assert.Equal(new Uri(baseUrl), messageHandler.RequestUrl);
             }
         }
 
@@ -126,7 +129,7 @@ namespace FluidHttp.Tests
         public async Task Fetch_UnknownMethod_SendsAnyway()
         {
             // Act
-            await client.FetchAsync(url, "made-up-method");
+            await clientNoUrl.FetchAsync(baseUrl, "made-up-method");
 
             // Assert
             Assert.Equal(new HttpMethod("made-up-method"), messageHandler.RequestMethod);
@@ -137,28 +140,24 @@ namespace FluidHttp.Tests
         {
             // Arrange
             FluidRequest request = new FluidRequest();
-
-            request.Url = url;
+            request.Url = baseUrl;
 
             // Act
-            await client.FetchAsync(request);
+            await clientNoUrl.FetchAsync(request);
 
             // Assert
             Assert.Equal(HttpMethod.Get, messageHandler.RequestMethod);
-            Assert.Equal(new Uri(url), messageHandler.RequestUrl);
+            Assert.Equal(new Uri(baseUrl), messageHandler.RequestUrl);
         }
 
         [Fact]
         public async Task Fetch_ClientHasBaseUrl_PrependsBaseUrlToRequest()
         {
             // Arrange
-            string baseUrl = "http://www.baseurl.com/";
-            string resource = "test/resource/1";
-
-            client.BaseUrl = baseUrl;
+            string resource = "/test/resource/1";
 
             // Act
-            await client.FetchAsync(resource);
+            await clientWithUrl.FetchAsync(resource);
 
             // Assert
             Assert.Equal(HttpMethod.Get, messageHandler.RequestMethod);
@@ -173,7 +172,7 @@ namespace FluidHttp.Tests
         public void SetInvalidBaseUrl_ThrowException(string badUri)
         {
             // Act + Assert
-            Assert.Throws<BadBaseUriException>(() => client.BaseUrl = badUri);
+            Assert.Throws<BadBaseUriException>(() => new FluidClient(badUri));
         }
 
         [Theory]
@@ -185,7 +184,7 @@ namespace FluidHttp.Tests
         {
             // Act + Assert
             await Assert.ThrowsAsync<BadAbsoluteUriException>(
-                async () => await client.FetchAsync(badResource));
+                async () => await clientNoUrl.FetchAsync(badResource));
         }
 
         [Theory]
@@ -193,12 +192,9 @@ namespace FluidHttp.Tests
         [InlineData("#")]
         public async Task Fetch_InvalidRelativeResourceUrl_BaseUrlSet_ThrowException(string badResource)
         {
-            // Arrange
-            client.BaseUrl = "http://test.com/";
-
             // Act + Assert
             await Assert.ThrowsAsync<BadRelativeUriException>(
-                async () => await client.FetchAsync(badResource));
+                async () => await clientWithUrl.FetchAsync(badResource));
         }
 
         [Theory]
@@ -211,11 +207,8 @@ namespace FluidHttp.Tests
         [InlineData(" / ")]
         public async Task Fetch_ValidResourceUrl_ContinuesAsNormal(string goodResource)
         {
-            // Arrange
-            client.BaseUrl = "http://test.com/";
-
             // Act
-            await client.FetchAsync(goodResource);
+            await clientWithUrl.FetchAsync(goodResource);
         }
 
         [Theory]
@@ -224,14 +217,11 @@ namespace FluidHttp.Tests
         [InlineData(" ")]
         public async Task Fetch_EmptyBaseUrl_IgnoresBaseUrl(string baseUrl)
         {
-            // Arrange
-            client.BaseUrl = baseUrl;
-
             // Act
-            await client.FetchAsync(url);
+            await clientNoUrl.FetchAsync(FetchTests.baseUrl);
 
             // Assert
-            Assert.Equal(new Uri(url), messageHandler.RequestUrl);
+            Assert.Equal(new Uri(FetchTests.baseUrl), messageHandler.RequestUrl);
         }
 
         [Theory]
@@ -240,12 +230,9 @@ namespace FluidHttp.Tests
         [InlineData(" ")]
         public async Task Fetch_EmptyBaseUrl_IgnoresBaseUrl_InvalidResource_ThrowsException(string baseUrl)
         {
-            // Arrange
-            client.BaseUrl = baseUrl;
-
             // Act + Assert
             await Assert.ThrowsAsync<BadAbsoluteUriException>(
-                async () => await client.FetchAsync("/test-resource"));
+                async () => await clientNoUrl.FetchAsync("/test-resource"));
         }
 
         [Theory]
@@ -263,11 +250,8 @@ namespace FluidHttp.Tests
         public async Task Fetch_CorrectlyConcatenateBaseUrlAndResourceUrl(
             string baseUrl, string resourceUrl, string expected)
         {
-            // Arrange
-            client.BaseUrl = baseUrl;
-
             // Act
-            await client.FetchAsync(resourceUrl);
+            await clientWithUrl.FetchAsync(resourceUrl);
 
             // Assert
             Assert.Equal(HttpMethod.Get, messageHandler.RequestMethod);
@@ -280,16 +264,16 @@ namespace FluidHttp.Tests
         public async Task Fetch_RequestHasQueryParameter_BuildQueryString(string key, object value)
         {
             // Arrange
-            string expectedUrl = url + $"?{key}={value}";
+            string expectedUrl = baseUrl + $"?{key}={value}";
 
             FluidRequest request = new FluidRequest();
 
             request.WithQueryParameter(key, value);
 
-            request.Url = url;
+            request.Url = baseUrl;
 
             // Act
-            await client.FetchAsync(request);
+            await clientNoUrl.FetchAsync(request);
 
             // Assert
             Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
@@ -299,7 +283,7 @@ namespace FluidHttp.Tests
         public async Task Fetch_RequestHasArrayQueryParameter_BuildQueryString()
         {
             // Arrange
-            string expectedUrl = url + "?ArrayTest[]=val1&ArrayTest[]=val2&ArrayTest[]=val3";
+            string expectedUrl = baseUrl + "?ArrayTest[]=val1&ArrayTest[]=val2&ArrayTest[]=val3";
 
             IEnumerable<string> arrayValues = new List<string>
             {
@@ -312,10 +296,10 @@ namespace FluidHttp.Tests
 
             request.WithQueryParameter("ArrayTest", arrayValues);
 
-            request.Url = url;
+            request.Url = baseUrl;
 
             // Act
-            await client.FetchAsync(request);
+            await clientNoUrl.FetchAsync(request);
 
             // Assert
             Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
@@ -325,7 +309,6 @@ namespace FluidHttp.Tests
         public async Task Fetch_RequestHasMultipleQueryParameters_BuildQueryString()
         {
             // Arrange
-            string baseUrl = "http://localhost.com/";
             string expectedUrl = baseUrl +
                 "?TestParameter=True&" +
                 "OtherTest=hello%20world!&" +
@@ -346,10 +329,10 @@ namespace FluidHttp.Tests
             request.WithQueryParameter("ArrayTest", arrayValues);
             request.WithQueryParameter("NumberTest", 123);
 
-            request.Url = url;
+            request.Url = baseUrl;
 
             // Act
-            await client.FetchAsync(request);
+            await clientNoUrl.FetchAsync(request);
 
             // Assert
             Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
@@ -363,13 +346,12 @@ namespace FluidHttp.Tests
             string expectedUrl = "http://localhost.com/?MyParameter=hello%20world&MyOtherParameter=hello%20mars";
 
             FluidRequest request = new FluidRequest();
-
+            
             request.Url = requestUrl;
-
             request.WithQueryParameter("MyOtherParameter", "hello mars");
 
             // Act
-            await client.FetchAsync(request);
+            await clientNoUrl.FetchAsync(request);
 
             // Assert
             Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
@@ -378,9 +360,6 @@ namespace FluidHttp.Tests
         [Fact]
         public async Task Fetch_RequestHasMultipleParametersWithSameName()
         {
-            // Arrange
-            client.BaseUrl = url;
-
             string expectedUrl = "http://localhost.com/?Parameter=red&Parameter=blue";
 
             FluidRequest request = new FluidRequest();
@@ -389,7 +368,7 @@ namespace FluidHttp.Tests
             request.WithQueryParameter("Parameter", "blue");
 
             // Act
-            await client.FetchAsync(request);
+            await clientWithUrl.FetchAsync(request);
 
             // Assert
             Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
@@ -404,27 +383,21 @@ namespace FluidHttp.Tests
         [InlineData("?=test&OtherVal", "?=test&OtherVal=")]
         public async Task Fetch_AwkwardQueryString_StillSendRequest(string resource, string expected)
         {
-            // Arrange
-            client.BaseUrl = url;
-
             // Act
-            await client.FetchAsync(resource);
+            await clientWithUrl.FetchAsync(resource);
 
             // Assert
-            Assert.Equal(new Uri(url + expected), messageHandler.RequestUrl);
+            Assert.Equal(new Uri(baseUrl + expected), messageHandler.RequestUrl);
         }
 
         [Fact]
         public async Task Fetch_DefaultToBaseUrlIfNoUrlProvided()
         {
-            // Arrange
-            client.BaseUrl = url;
-
             // Act
-            await client.FetchAsync();
+            await clientWithUrl.FetchAsync();
 
             // Assert
-            Assert.Equal(new Uri(url), messageHandler.RequestUrl);
+            Assert.Equal(new Uri(baseUrl), messageHandler.RequestUrl);
         }
 
         [Fact]
@@ -432,17 +405,17 @@ namespace FluidHttp.Tests
         {
             // Act + Assert
             await Assert.ThrowsAsync<NoUrlProvidedException>(
-                async () => await client.FetchAsync());
+                async () => await clientNoUrl.FetchAsync());
         }
 
         [Theory]
         [InlineData("http://local host.com")]
         [InlineData("http://local%20host.com")]
-        public async Task Fetch_IllegalCharactersInBaseUrl_InvalidAbsoluteUriException(string baseUrl)
+        public async Task Fetch_IllegalCharactersInFetchUrl_InvalidAbsoluteUriException(string baseUrl)
         {
             // Act + Assert
             await Assert.ThrowsAsync<BadAbsoluteUriException>(
-                async () => await client.FetchAsync(baseUrl));
+                async () => await clientNoUrl.FetchAsync(baseUrl));
         }
 
         [Theory]
@@ -460,16 +433,13 @@ namespace FluidHttp.Tests
         public async Task Fetch_SubstituteIllegalCharactersInResourceUrl(
             string character, string encoded)
         {
-            // Arrange
-            client.BaseUrl = url;
-
             string resource = $"test{character}resource";
 
             // Act
-            await client.FetchAsync(resource);
+            await clientWithUrl.FetchAsync(resource);
 
             // Assert
-            Assert.Equal(new Uri($"{url}/test{encoded}resource"), messageHandler.RequestUrl);
+            Assert.Equal(new Uri($"{baseUrl}/test{encoded}resource"), messageHandler.RequestUrl);
         }
 
         [Theory]
@@ -478,16 +448,13 @@ namespace FluidHttp.Tests
         public async Task Fetch_WithBodyParameter_AddToRequestBody(string key, object value)
         {
             // Arrange
-            client.BaseUrl = url;
-
             FluidRequest request = new FluidRequest();
-
             request.WithBodyParameter(key, value);
 
             string expected = $"{key}={value}";
 
             // Act
-            await client.FetchAsync(request);
+            await clientWithUrl.FetchAsync(request);
 
             // Assert
             Assert.Equal(expected, messageHandler.SentMessageContent);
@@ -509,16 +476,13 @@ namespace FluidHttp.Tests
             string character, string encoded)
         {
             // Arrange
-            client.BaseUrl = url;
-
             FluidRequest request = new FluidRequest();
-
             request.WithBodyParameter("TestValue", character);
 
             string expected = $"TestValue={encoded}";
 
             // Act
-            await client.FetchAsync(request);
+            await clientWithUrl.FetchAsync(request);
 
             // Assert
             Assert.Equal(expected, messageHandler.SentMessageContent);
@@ -528,14 +492,11 @@ namespace FluidHttp.Tests
         public async Task Fetch_WithHeaders()
         {
             // Arrange
-            client.BaseUrl = url;
-
             FluidRequest request = new FluidRequest();
-
             request.Headers["Key"] = "Value";
 
             // Act
-            await client.FetchAsync(request);
+            await clientWithUrl.FetchAsync(request);
 
             // Assert
             Assert.Equal("Value", messageHandler.RequestHeaders.GetValues("Key").Single());
@@ -544,11 +505,8 @@ namespace FluidHttp.Tests
         [Fact]
         public async Task Fetch_NoContentTypeHeader_DefaultToWwwFormEncoded()
         {
-            // Arrange
-            client.BaseUrl = url;
-
             // Act
-            await client.FetchAsync();
+            await clientWithUrl.FetchAsync();
 
             // Assert
             Assert.Equal("application/x-www-form-encoded", messageHandler.ContentHeaders.ContentType.MediaType);
@@ -562,14 +520,11 @@ namespace FluidHttp.Tests
         public async Task Fetch_ContentTypeSet(string type)
         {
             // Arrange
-            client.BaseUrl = url;
-
             FluidRequest request = new FluidRequest();
-
             request.ContentType = type;
 
             // Act
-            await client.FetchAsync(request);
+            await clientWithUrl.FetchAsync(request);
 
             // Assert
             Assert.Equal(type, messageHandler.ContentHeaders.ContentType.MediaType);
@@ -583,11 +538,10 @@ namespace FluidHttp.Tests
         public async Task Fetch_ReturnStatusCodeWithResponse(HttpStatusCode statusCode)
         {
             // Arrange
-            client.BaseUrl = url;
             messageHandler.ResponseMessage.StatusCode = statusCode;
 
             // Act
-            IFluidResponse response = await client.FetchAsync();
+            IFluidResponse response = await clientWithUrl.FetchAsync();
 
             // Assert
             Assert.Equal(statusCode, response.StatusCode);

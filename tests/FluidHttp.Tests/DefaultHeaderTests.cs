@@ -10,11 +10,11 @@ namespace FluidHttp.Tests
         private readonly FakeHttpMessageHandler messageHandler = new FakeHttpMessageHandler();
         private readonly FluidClient client;
 
-        const string url = "http://localhost.com";
+        private const string url = "http://localhost.com";
 
         public DefaultHeaderTests()
         {
-            client = new FluidClient(messageHandler);
+            client = new FluidClient(url, messageHandler);
         }
 
         [Fact]
@@ -22,8 +22,6 @@ namespace FluidHttp.Tests
         {
             // Arrange
             FluidRequest request = new FluidRequest();
-
-            client.BaseUrl = url;
             client.SetDefaultHeader("TestHeader", "TestValue");
 
             // Act
@@ -64,8 +62,6 @@ namespace FluidHttp.Tests
         {
             // Arrange
             FluidRequest request = new FluidRequest();
-
-            client.BaseUrl = url;
             client.SetDefaultHeader(reservedHeader, inputValue);
 
             // Act
