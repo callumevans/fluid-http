@@ -358,6 +358,25 @@ namespace FluidHttp.Tests
         }
 
         [Fact]
+        public async Task Fetch_RequestUrlHasQueryParameters_SetUrlAfterParams_ResourceUrlHasCorrectQueryString()
+        {
+            // Arrange
+            string requestUrl = "http://localhost.com/?MyParameter=hello%20world";
+            string expectedUrl = "http://localhost.com/?MyParameter=hello%20world&MyOtherParameter=hello%20mars";
+
+            FluidRequest request = new FluidRequest();
+            
+            request.WithQueryParameter("MyOtherParameter", "hello mars");
+            request.Url = requestUrl;
+
+            // Act
+            await clientNoUrl.FetchAsync(request);
+
+            // Assert
+            Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
+        }
+
+        [Fact]
         public async Task Fetch_RequestHasMultipleParametersWithSameName()
         {
             string expectedUrl = "http://localhost.com/?Parameter=red&Parameter=blue";
