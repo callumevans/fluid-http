@@ -12,7 +12,6 @@ namespace FluidHttp
 {
     public class FluidClient : IFluidClient, IDisposable
     {
-        private string baseUrl;
         private readonly ConcurrentDictionary<string, string> defaultHeaders = new ConcurrentDictionary<string, string>();
         private readonly HttpClient httpClient;
         
@@ -30,43 +29,36 @@ namespace FluidHttp
             RequestHeaders.Expires,
             RequestHeaders.LastModified
         };
-        
-        public string BaseUrl
-        {
-            get => baseUrl;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value)) return;
 
-                if (Uri.IsWellFormedUriString(value, UriKind.Absolute) == false)
-                    throw new BadBaseUriException();
+        public string BaseUrl { get; } = string.Empty;
 
-                this.baseUrl = value.Trim();
-            }
-        }
-
-        public bool BaseUrlSet => !(string.IsNullOrWhiteSpace(baseUrl));
+        public bool BaseUrlSet => !(string.IsNullOrWhiteSpace(BaseUrl));
 
         public FluidClient()
-            : this(string.Empty)
         {
+            this.httpClient = new HttpClient();
         }
-
+        
         public FluidClient(HttpMessageHandler messageHandler)
-            : this(messageHandler, string.Empty)
+            : this(string.Empty, messageHandler)
         {
         }
-
-        public FluidClient(HttpMessageHandler messageHandler, string url)
+        
+        public FluidClient(string url, HttpMessageHandler messageHandler)
+            : this(url)
         {
             this.httpClient = new HttpClient(messageHandler);
-            this.BaseUrl = url;
         }
 
         public FluidClient(string url)
-        {
-            this.httpClient = new HttpClient();
-            this.BaseUrl = url;
+        {            
+            if (string.IsNullOrWhiteSpace(url) == false)
+            {
+                if (Uri.IsWellFormedUriString(url, UriKind.Absolute) == false)
+                    throw new BadBaseUriException();
+                
+                this.BaseUrl = url.Trim();
+            }
         }
 
         public void SetDefaultHeader(string name, string value)
@@ -96,7 +88,7 @@ namespace FluidHttp
 
                 // Safely combine the base url with the resource url
 
-                string rootUrl = this.baseUrl.TrimEnd('/', '\\', ' ');
+                string rootUrl = this.BaseUrl.TrimEnd('/', '\\', ' ');
                 resourceUrl = resourceUrl.TrimStart('/', '\\', ' ');
 
                 requestUrl = $"{rootUrl}/{resourceUrl}";
