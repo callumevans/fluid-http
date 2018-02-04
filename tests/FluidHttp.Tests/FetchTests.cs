@@ -375,6 +375,70 @@ namespace FluidHttp.Tests
             // Assert
             Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
         }
+        
+        [Fact]
+        public async Task Fetch_SetUrlMultipleTimes_CorrectUrl()
+        {
+            // Arrange
+            string requestUrl = "http://localhost.com/?MyParameter=hello%20world";
+            string expectedUrl = "http://localhost.com/?MyParameter=hello%20world&MyOtherParameter=hello%20mars";
+
+            FluidRequest request = new FluidRequest();
+            
+            request.WithQueryParameter("MyOtherParameter", "hello mars");
+            request.Url = requestUrl;
+            request.Url = requestUrl;
+
+            // Act
+            await clientNoUrl.FetchAsync(request);
+
+            // Assert
+            Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
+        }        
+        
+        [Fact]
+        public async Task Fetch_SetUrlThenParamsMultipleTimes_CorrectUrl()
+        {
+            // Arrange
+            string requestUrl = "http://localhost.com/?MyParameter=hello%20world";
+            string expectedUrl = "http://localhost.com/?MyParameter=hello%20world&MyOtherParameter=hello%20mars&ThirdParam=hello%20three";
+
+            FluidRequest request = new FluidRequest();
+            
+            request.WithQueryParameter("MyOtherParameter", "hello mars");
+            request.Url = requestUrl;
+            request.WithQueryParameter("ThirdParam", "hello three");
+            request.Url = requestUrl;
+
+            // Act
+            await clientNoUrl.FetchAsync(request);
+
+            // Assert
+            Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
+        }        
+        
+        [Fact]
+        public async Task Fetch_SetUrlThenBodyParameter_CorrectBody()
+        {
+            // Arrange
+            string requestUrl = "http://localhost.com/?MyParameter=hello%20world";
+            string expectedUrl = "http://localhost.com/?MyParameter=hello%20world&QueryParameter=query";
+
+            FluidRequest request = new FluidRequest(HttpMethod.Post);
+            
+            request.WithQueryParameter("QueryParameter", "query");
+            request.Url = requestUrl;
+            request.WithBodyParameter("BodyParameter", "body");
+            request.Url = requestUrl;
+            request.Url = requestUrl;
+
+            // Act
+            await clientNoUrl.FetchAsync(request);
+
+            // Assert
+            Assert.Equal(new Uri(expectedUrl), messageHandler.RequestUrl);
+            Assert.Equal("BodyParameter=body", messageHandler.SentMessageContent);
+        }
 
         [Fact]
         public async Task Fetch_RequestHasMultipleParametersWithSameName()

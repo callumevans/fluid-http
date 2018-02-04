@@ -29,10 +29,12 @@ namespace FluidHttp
                     {
                         if (Uri.IsWellFormedUriString(queryString, UriKind.Relative))
                         {
-                            List<Parameter> queryStringParameters = ParseQueryString(queryString);
-                            Parameters = queryStringParameters.Concat(Parameters).ToList();
+                            IList<Parameter> queryStringParameters = ParseQueryString(queryString);
 
-                            // Remove query string from url
+                            Parameters = MergeParameterLists(
+                                    Parameters, queryStringParameters)
+                                .ToList();
+
                             newUrl = newUrl.Substring(0, newUrl.IndexOf('?'));
                         }
                     }
@@ -95,9 +97,9 @@ namespace FluidHttp
             Headers[RequestHeaders.ContentType] = contentType;
         }
        
-        private List<Parameter> ParseQueryString(string queryString)
+        private IList<Parameter> ParseQueryString(string queryString)
         {
-            List<Parameter> result = new List<Parameter>();
+            var result = new List<Parameter>();
 
             foreach (string keyValuePair in queryString.Split('&'))
             {
@@ -117,6 +119,16 @@ namespace FluidHttp
             }
 
             return result;
+        }
+        
+        private IEnumerable<Parameter> MergeParameterLists(
+            IEnumerable<Parameter> existing,
+            IEnumerable<Parameter> mergeFrom)
+        {
+            IEnumerable<Parameter> noDuplicatedParameters = mergeFrom.Where(
+                x => existing.Any(y => y.Name == x.Name && y.Type == x.Type) == false).ToList();
+
+            return noDuplicatedParameters.Concat(existing);
         }
     }
 }
