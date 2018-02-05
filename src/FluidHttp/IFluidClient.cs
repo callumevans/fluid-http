@@ -6,8 +6,6 @@ namespace FluidHttp
     {
         string BaseUrl { get; }
         
-        bool BaseUrlSet { get; }
-
         void SetDefaultHeader(string name, string value);
 
         Task<IFluidResponse> FetchAsync(IFluidRequest request);
