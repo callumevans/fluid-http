@@ -30,6 +30,20 @@ namespace FluidHttp
             return client.FetchAsync(request);
         }
 
+        public static async Task<T> FetchAsync<T>(this IFluidClient client, IFluidRequest request)
+        {
+            IFluidResponse response = await client.FetchAsync(request);
+            return response.ParseResponse<T>();
+        }
+
+        public static Task<T> FetchAsync<T>(this IFluidClient client)
+        {
+            if (string.IsNullOrWhiteSpace(client.BaseUrl))
+                throw new NoUrlProvidedException();
+
+            return client.FetchAsync<T>("");
+        }
+
         public static Task<T> FetchAsync<T>(this IFluidClient client, string url)
         {
             return client.FetchAsync<T>(url, HttpMethod.Get);
@@ -44,7 +58,7 @@ namespace FluidHttp
         {
             var request = new FluidRequest(url, method);
             IFluidResponse response = await client.FetchAsync(request);
-            
+
             return response.ParseResponse<T>();
         }
     }
