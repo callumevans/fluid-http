@@ -4,11 +4,7 @@
   <a href="https://travis-ci.org/callumevans/fluid-http">
   <img src="https://img.shields.io/travis/callumevans/fluid-http.svg?branch=master&style=flat-square">
   </a>
-  
-  <a href="https://www.codacy.com/app/callumevans/fluid-http/dashboard">
-  <img src="https://img.shields.io/codacy/grade/568f11adbb7340ad83865ca86a636185.svg?style=flat-square">
-  </a>
- 
+
   <a href="https://github.com/callumevans/fluid-http/issues">
   <img src="https://img.shields.io/github/issues/callumevans/fluid-http.svg?style=flat-square">
   </a>
@@ -33,17 +29,14 @@ var request = new FluidRequest("resources/1");
 // Append headers to the request!
 request.WithHeader("Content-Type", "application/json");
 
-// and body parameters!
-request.WithBodyParameter("Data", "body content!");
+// And a Json or Xml body!
+request.WithJsonBody(new { Payload = "Hello world!" });
 
-// and query string parameters!
+// And query string parameters!
 request.WithQueryParameter("QueryParameter", "query parameter value!");
 
-// Execute the request
-FluidResponse response = await client.FetchAsync(request);
-
-// Map the response to an object
-MyClass myObject = response.ParseResponse<MyClass>();
+// Execute the request and parse the response!
+MyClass response = await client.FetchAsync<MyClass>();
 ```
 
 ## Fluent
@@ -51,12 +44,11 @@ MyClass myObject = response.ParseResponse<MyClass>();
 FluidHttp also comes with a few handy extension methods to help you quickly spin up a request without messing about with clients.
 
 ```csharp
-MyClass myObject = (await new FluidRequest("https://localhost.com/resources/1")
+MyClass myObject = await new FluidRequest("https://localhost.com/resources/1")
     .WithHeader("Content-Type", "application/json")
     .WithBodyParameter("Data", "body content")
     .WithQueryParameter("QueryParameter", "query parameter value!")
-    .FetchAsync())
-    .ParseResponse<MyClass>();
+    .FetchAsync<MyClass>();
 ```
 
 ## Fast
