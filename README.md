@@ -33,17 +33,14 @@ var request = new FluidRequest("resources/1");
 // Append headers to the request!
 request.WithHeader("Content-Type", "application/json");
 
-// and body parameters!
-request.WithBodyParameter("Data", "body content!");
+// And a Json or Xml body!
+request.WithJsonBody(new { Payload = "Hello world!" });
 
-// and query string parameters!
+// And query string parameters!
 request.WithQueryParameter("QueryParameter", "query parameter value!");
 
-// Execute the request
-FluidResponse response = await client.FetchAsync(request);
-
-// Map the response to an object
-MyClass myObject = response.ParseResponse<MyClass>();
+// Execute the request and parse the response!
+MyClass response = await client.FetchAsync<MyClass>();
 ```
 
 ## Fluent
@@ -51,12 +48,11 @@ MyClass myObject = response.ParseResponse<MyClass>();
 FluidHttp also comes with a few handy extension methods to help you quickly spin up a request without messing about with clients.
 
 ```csharp
-MyClass myObject = (await new FluidRequest("https://localhost.com/resources/1")
-    .WithHeader("Content-Type", "application/json")
-    .WithBodyParameter("Data", "body content")
-    .WithQueryParameter("QueryParameter", "query parameter value!")
-    .FetchAsync())
-    .ParseResponse<MyClass>();
+MyClass myObject = await new FluidRequest("https://localhost.com/resources/1")
+	.WithHeader("Content-Type", "application/json")
+	.WithBodyParameter("Data", "body content")
+	.WithQueryParameter("QueryParameter", "query parameter value!")
+	.FetchAsync<MyClass>();
 ```
 
 ## Fast
