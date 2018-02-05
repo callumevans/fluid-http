@@ -62,7 +62,7 @@ namespace FluidHttp
         public void SetDefaultHeader(string name, string value)
         {
             defaultHeaders.TryAdd(name, value);
-        }       
+        }
         
         public FluidClient WithDefaultHeader(string name, string value)
         {
