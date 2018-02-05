@@ -32,8 +32,6 @@ namespace FluidHttp
 
         public string BaseUrl { get; } = string.Empty;
 
-        public bool BaseUrlSet => !(string.IsNullOrWhiteSpace(BaseUrl));
-
         public FluidClient()
         {
             this.httpClient = new HttpClient();
@@ -76,7 +74,7 @@ namespace FluidHttp
         {
             string requestUrl = Uri.EscapeUriString(request.Url.Trim());
 
-            if (BaseUrlSet == true)
+            if (!string.IsNullOrWhiteSpace(BaseUrl))
             {
                 // Make sure resource url is a valid relative uri
                 // so we can safely append it to the client's BaseUrl

@@ -8,7 +8,7 @@ namespace FluidHttp
     {
         public static Task<IFluidResponse> FetchAsync(this IFluidClient client)
         {
-            if (client.BaseUrlSet == false)
+            if (string.IsNullOrWhiteSpace(client.BaseUrl))
                 throw new NoUrlProvidedException();
 
             return client.FetchAsync("");
