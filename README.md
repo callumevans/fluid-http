@@ -49,10 +49,10 @@ FluidHttp also comes with a few handy extension methods to help you quickly spin
 
 ```csharp
 MyClass myObject = await new FluidRequest("https://localhost.com/resources/1")
-	.WithHeader("Content-Type", "application/json")
-	.WithBodyParameter("Data", "body content")
-	.WithQueryParameter("QueryParameter", "query parameter value!")
-	.FetchAsync<MyClass>();
+    .WithHeader("Content-Type", "application/json")
+    .WithBodyParameter("Data", "body content")
+    .WithQueryParameter("QueryParameter", "query parameter value!")
+    .FetchAsync<MyClass>();
 ```
 
 ## Fast
